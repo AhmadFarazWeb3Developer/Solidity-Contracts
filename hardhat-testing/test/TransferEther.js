@@ -5,15 +5,20 @@ describe("Transfer Ether ", () => {
   const startTransactionLoader = async () => {
     const [owner] = await ethers.getSigners();
     const CONTRACT = await ethers.getContractFactory("TransferEther");
-    console.log(CONTRACT);
+    const deployedContract = await CONTRACT.deploy();
+    await deployedContract.waitForDeployment();
 
-    return { owner };
+    return { owner, deployedContract };
   };
 
   describe("Deployment", () => {
-    it("Owner check", async () => {
-      const { owner } = await loadFixture(startTransactionLoader);
-      console.log(await owner.address);
+    it("should get actual owner", async () => {
+      const { owner, deployedContract } = await loadFixture(
+        startTransactionLoader
+      );
+      const deployerAddress = await deployedContract.signer; // get contract's own address
+      console.log(deployerAddress);
+      expect(deployerAddress).to.equal(owner);
     });
   });
 });
