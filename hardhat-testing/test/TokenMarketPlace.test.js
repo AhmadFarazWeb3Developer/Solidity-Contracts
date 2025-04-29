@@ -1,27 +1,138 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { ethers } = require("hardhat");
+const { ethers, BigNumber } = require("hardhat");
 const { expect } = require("chai");
 
 const { deployERC20 } = require("./utils/ERC20");
 
 describe("Token Marketplace", () => {
   const deployTokenMarketplace = async () => {
-    const _pkbkToken = await deployERC20();
-    const _pkbkTokenAddres = _pkbkToken.target;
-    console.log(_pkbkTokenAddres);
-    const CONTRACT = await ethers.getContractFactory("TokenMarketPlace");
-    const deplyedContract = await CONTRACT.deploy(_pkbkTokenAddres);
-    await deplyedContract.waitForDeployment();
-    return { deplyedContract };
+    const { pkbk_deployedContract, token_marketplace_deplyedContract } =
+      await deployERC20();
+
+    const [acct1, acct2, acct3, acct4] = await ethers.getSigners();
+
+    // console.log(
+    //   await ethers.formatEther(await pkbk_deployedContract.balanceOf(acct1))
+    // );
+    return {
+      token_marketplace_deplyedContract,
+      pkbk_deployedContract,
+      acct1,
+      acct2,
+      acct3,
+      acct4,
+    };
   };
 
   describe("Deployment", () => {
     beforeEach(async () => {
-      ({ deplyedContract } = await loadFixture(deployTokenMarketplace));
+      ({
+        token_marketplace_deplyedContract,
+        pkbk_deployedContract,
+        acct1,
+        acct2,
+        acct3,
+        acct4,
+      } = await loadFixture(deployTokenMarketplace));
     });
 
-    it("should set the token address", async () => {
-      console.log(deplyedContract.target);
+    it("should have 100 tokens", async () => {
+      expect(
+        await ethers.formatEther(
+          await pkbk_deployedContract.balanceOf(
+            token_marketplace_deplyedContract.target
+          )
+        )
+      ).to.equal("100.0");
+    });
+  });
+
+  describe("Buy Tokens", () => {
+    const tokens = 10n * 10n ** 18n;
+
+    beforeEach(async () => {
+      ({ token_marketplace_deplyedContract, pkbk_deployedContract } =
+        await loadFixture(deployTokenMarketplace));
+    });
+
+    it("Should calculate token price", async () => {
+      const tokenPrice =
+        await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+          tokens
+        );
+      expect(await ethers.formatEther(tokenPrice)).to.equal("0.2");
+    });
+
+    it("User should able to buy tokens ", async () => {
+      // static call just return the  requested data not the whole object
+      let tokenPrice =
+        await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+          tokens
+        );
+
+      // first buyer
+      await token_marketplace_deplyedContract
+        .connect(acct1)
+        .buyPKBKToken(tokens, {
+          value: tokenPrice,
+        });
+
+      expect(
+        parseFloat(
+          await ethers.formatEther(await pkbk_deployedContract.balanceOf(acct1))
+        )
+      ).to.be.above(parseFloat(await ethers.formatUnits(tokenPrice))); // formatUnits = bigNumber => string
+
+      // second account and token price calculation
+      tokenPrice =
+        await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+          tokens
+        );
+      await token_marketplace_deplyedContract
+        .connect(acct2)
+        .buyPKBKToken(tokens, {
+          value: tokenPrice,
+        });
+
+      expect(
+        parseFloat(
+          await ethers.formatEther(await pkbk_deployedContract.balanceOf(acct2))
+        )
+      ).to.be.above(parseFloat(await ethers.formatUnits(tokenPrice))); // formatUnits = bigNumber => string
+
+      //  calculate token price again for third account
+      tokenPrice =
+        await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+          tokens
+        );
+      await token_marketplace_deplyedContract
+        .connect(acct3)
+        .buyPKBKToken(tokens, {
+          value: tokenPrice,
+        });
+
+      expect(
+        parseFloat(
+          await ethers.formatEther(await pkbk_deployedContract.balanceOf(acct3))
+        )
+      ).to.be.above(parseFloat(await ethers.formatUnits(tokenPrice))); // formatUnits = bigNumber => string
+    });
+  });
+
+  describe("Sell Tokens", () => {
+    beforeEach(async () => {
+      ({ token_marketplace_deplyedContract, pkbk_deployedContract, acct1 } =
+        await loadFixture(deployTokenMarketplace));
+    });
+
+    it("Should sell the tokens", async () => {
+      const tokens = 10n * 10n ** 18n;
+
+      console.log(await pkbk_deployedContract.balanceOf(acct1));
+      await token_marketplace_deplyedContract
+        .connect(acct1)
+        .sellPKBKToken(tokens);
+      console.log(await pkbk_deployedContract.balanceOf(acct1));
     });
   });
 });

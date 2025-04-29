@@ -44,17 +44,17 @@ contract TokenMarketPlace is Ownable, ReentrancyGuard {
     // Function to adjust the token price based on market demand.
     function adjustTokenPriceBasedOnDemand() private {
         uint256 marketDemandRatio = buyerCount.mul(1e18).div(sellerCount);
-        console.log("Market Demand Ratio : ", marketDemandRatio);
+        // console.log("Market Demand Ratio : ", marketDemandRatio);
 
         // Smoothing factor to stabilize the price adjustment.
         // Adding 1e18 ensures that the price does not drop too low when demand is low.
         uint256 smoothingFactor = 1e18;
 
         uint256 adjustedRatio = marketDemandRatio.add(smoothingFactor).div(2);
-        console.log("Adjusted Ratio : ", adjustedRatio);
+        // console.log("Adjusted Ratio : ", adjustedRatio);
         if (previousAdjustedRatio != adjustedRatio) {
             uint256 newTokenPrice = tokenPrice.mul(adjustedRatio).div(1e18);
-            console.log("New Token Price : ", newTokenPrice);
+            // console.log("New Token Price : ", newTokenPrice);
 
             uint256 minimumTokenPrice = 2e16 wei;
             if (newTokenPrice < minimumTokenPrice) {
@@ -79,13 +79,13 @@ contract TokenMarketPlace is Ownable, ReentrancyGuard {
         uint256 _amountOfToken
     ) public returns (uint256) {
         require(_amountOfToken > 0, "Amount Of Token > 0");
-        console.log(
-            "Amount Of Tokens in Contract ",
-            pkbkToken.balanceOf(address(this))
-        );
+        // console.log(
+        //     "Amount Of Tokens in Contract ",
+        //     pkbkToken.balanceOf(address(this))
+        // );
         adjustTokenPriceBasedOnDemand();
         uint256 amountToPay = _amountOfToken.mul(tokenPrice).div(1e18); // _amountOfToken * tokenPrice / 1e18
-        console.log("Amount To Pay", amountToPay);
+        // console.log("Amount To Pay", amountToPay);
         return amountToPay;
     }
 
