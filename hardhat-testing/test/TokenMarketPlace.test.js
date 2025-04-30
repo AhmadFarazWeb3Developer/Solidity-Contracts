@@ -120,19 +120,69 @@ describe("Token Marketplace", () => {
   });
 
   describe("Sell Tokens", () => {
+    const tokens = 10n * 10n ** 18n;
     beforeEach(async () => {
       ({ token_marketplace_deplyedContract, pkbk_deployedContract, acct1 } =
         await loadFixture(deployTokenMarketplace));
+    });
+    it("Should approve seller of tokens", async () => {
+      // Simulate to confirm the approve will succeed
+      expect(
+        await pkbk_deployedContract
+          .connect(acct2)
+          .approve.staticCall(acct1, tokens)
+      ).to.equal(true);
+
+      expect(
+        await pkbk_deployedContract
+          .connect(acct3)
+          .approve.staticCall(token_marketplace_deplyedContract.target, tokens)
+      ).to.equal(true);
     });
 
     it("Should sell the tokens", async () => {
       const tokens = 10n * 10n ** 18n;
 
-      console.log(await pkbk_deployedContract.balanceOf(acct1));
+      // First buy some tokens
+      let tokenPrice =
+        await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+          tokens
+        );
+
+      // first buyer
       await token_marketplace_deplyedContract
-        .connect(acct1)
+        .connect(acct2)
+        .buyPKBKToken(tokens, {
+          value: tokenPrice,
+        });
+
+      // Now contract get Ethers
+      expect(
+        await ethers.formatEther(
+          await ethers.provider.getBalance(
+            token_marketplace_deplyedContract.target
+          )
+        )
+      ).to.equal("0.2"); // 10 tokens * 0.02 ETH = 0.2 ETH
+
+      // Actually send the transaction for approval
+      await pkbk_deployedContract
+        .connect(acct2)
+        .approve(token_marketplace_deplyedContract.target, tokens);
+
+      // Now tokens price is updated so funding my contract with extra eths to pay back profit to seller
+
+      await acct1.sendTransaction({
+        to: token_marketplace_deplyedContract.target,
+        value: ethers.parseEther("10"), // Give it 10 ETH
+      });
+
+      await token_marketplace_deplyedContract
+        .connect(acct2)
         .sellPKBKToken(tokens);
-      console.log(await pkbk_deployedContract.balanceOf(acct1));
+      console.log(
+        await ethers.formatEther(await ethers.provider.getBalance(acct2))
+      );
     });
   });
 });
