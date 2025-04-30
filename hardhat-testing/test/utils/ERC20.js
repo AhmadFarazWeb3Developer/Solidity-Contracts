@@ -23,13 +23,8 @@ async function deployERC20() {
     SEND_TOKENS
   );
 
-  // console.log(
-  //   await ethers.formatEther(
-  //     await pkbk_deployedContract.balanceOf(
-  //       token_marketplace_deplyedContract.target
-  //     )
-  //   )
-  // );
+
+  
   return { pkbk_deployedContract, token_marketplace_deplyedContract };
 }
 module.exports = { deployERC20 };

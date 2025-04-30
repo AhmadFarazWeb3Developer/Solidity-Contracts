@@ -85,7 +85,7 @@ contract TokenMarketPlace is Ownable, ReentrancyGuard {
         // );
         adjustTokenPriceBasedOnDemand();
         uint256 amountToPay = _amountOfToken.mul(tokenPrice).div(1e18); // _amountOfToken * tokenPrice / 1e18
-        console.log("Amount To Pay", amountToPay);
+        // console.log("Amount To Pay", amountToPay);
         return amountToPay;
     }
 
