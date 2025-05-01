@@ -22,7 +22,7 @@ contract Voting {
     }
 
     // third entity
-    address electionCommission;
+    address public electionCommission;
 
     address public winner;
 
@@ -148,7 +148,7 @@ contract Voting {
 
     function getVotersList() public view returns (Voter[] memory) {
         Voter[] memory voterList = new Voter[](nextVoterId - 1);
-        for (uint256 i = 1; i < voterList.length; i++) {
+        for (uint256 i = 0; i < voterList.length; i++) {
             voterList[i] = voterDetails[i + 1];
         }
         return voterList;
