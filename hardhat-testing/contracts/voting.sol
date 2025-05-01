@@ -28,9 +28,9 @@ contract Voting {
 
     uint256 nextVoterId = 1;
     uint256 nextCandidateId = 1;
-    uint256 startTime;
-    uint256 endTime;
-    bool stopVoting;
+    uint256 public startTime;
+    uint256 public endTime;
+    bool public stopVoting;
 
     mapping(uint256 => Voter) voterDetails;
     mapping(uint256 => Candidate) candidateDetails;
