@@ -12,4 +12,3 @@ contract PKBK is ERC20 {
         return 18;
     }
 }
-
