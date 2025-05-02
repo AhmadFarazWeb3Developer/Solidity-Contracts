@@ -4,13 +4,18 @@ const {
 } = require("@nomicfoundation/hardhat-network-helpers");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { deployERC20 } = require("./utils/ERC20");
 
 describe("Voting", () => {
   const deployVotingContract = async () => {
     const Contract = await ethers.getContractFactory("Voting");
     const [owner, candidate1, candidate2, voter1, voter2, voter3, voter4] =
       await ethers.getSigners();
-    const voting_deployedContract = await Contract.deploy();
+    const { pkbk_deployedContract, token_marketplace_deplyedContract } =
+      await deployERC20();
+    const voting_deployedContract = await Contract.deploy(
+      pkbk_deployedContract.target
+    );
     await voting_deployedContract.waitForDeployment(); // for contract deployment
     return {
       voting_deployedContract,
@@ -21,6 +26,8 @@ describe("Voting", () => {
       voter2,
       voter3,
       voter4,
+      token_marketplace_deplyedContract,
+      pkbk_deployedContract,
     };
   };
 
@@ -35,6 +42,8 @@ describe("Voting", () => {
         voter2,
         voter3,
         voter4,
+        token_marketplace_deplyedContract,
+        pkbk_deployedContract,
       } = await loadFixture(deployVotingContract));
     });
 
@@ -107,77 +116,84 @@ describe("Voting", () => {
 
     describe("Performing Voting", () => {
       it("Should perform proper voting", async () => {
-        // Register Candidates
-        candidateName = "Imran Qureshi";
-        party = "Justice Alliance Party";
-        age = 45;
-        gender = 0;
-
+        // --- Register Candidates ---
         await voting_deployedContract
           .connect(candidate1)
-          .registerCandidate(candidateName, party, age, gender);
-
-        candidateName = "Kashif Mehmood";
-        party = "People's Reform Movement";
-        age = 42;
-        gender = 0;
+          .registerCandidate("Imran Qureshi", "Justice Alliance Party", 45, 0);
 
         await voting_deployedContract
           .connect(candidate2)
-          .registerCandidate(candidateName, party, age, gender);
+          .registerCandidate(
+            "Kashif Mehmood",
+            "People's Reform Movement",
+            42,
+            0
+          );
 
-        // Register Voters
-        voterName = "Bilal Ahmad";
-        age = 28;
-        gender = 0;
+        // --- Register Voters ---
         await voting_deployedContract
           .connect(voter1)
-          .registerVoter(voterName, age, gender);
+          .registerVoter("Bilal Ahmad", 28, 0);
 
-        voterName = "Noman Siddiqui";
-        age = 33;
-        gender = 0;
         await voting_deployedContract
           .connect(voter2)
-          .registerVoter(voterName, age, gender);
+          .registerVoter("Noman Siddiqui", 33, 0);
 
-        voterName = "Usman Farooq";
-        age = 29;
-        gender = 0;
         await voting_deployedContract
           .connect(voter3)
-          .registerVoter(voterName, age, gender);
+          .registerVoter("Usman Farooq", 29, 0);
 
-        voterName = "Hamza Yousuf";
-        age = 35;
-        gender = 0;
         await voting_deployedContract
           .connect(voter4)
-          .registerVoter(voterName, age, gender);
+          .registerVoter("Hamza Yousuf", 35, 0);
 
-        // Set voting period
+        // --- Buy Tokens ---
+        const tokens = 1n * 10n ** 18n;
+
+        let tokenPrice =
+          await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+            tokens
+          );
+        await token_marketplace_deplyedContract
+          .connect(voter1)
+          .buyPKBKToken(tokens, { value: tokenPrice });
+
+        tokenPrice =
+          await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+            tokens
+          );
+        await token_marketplace_deplyedContract
+          .connect(voter2)
+          .buyPKBKToken(tokens, { value: tokenPrice });
+
+        tokenPrice =
+          await token_marketplace_deplyedContract.calculateTokenPrice.staticCall(
+            tokens
+          );
+        await token_marketplace_deplyedContract
+          .connect(voter3)
+          .buyPKBKToken(tokens, { value: tokenPrice });
+
+        // --- Set Voting Period ---
         const startAt = 0;
         const endAfter = 3600;
         await voting_deployedContract.setVotingPeriod(startAt, endAfter);
-
-        // console.log(await voting_deployedContract.startTime());
-        // console.log(await voting_deployedContract.endTime());
-
         const endTime = await voting_deployedContract.endTime();
 
+        // --- Cast Votes ---
         await voting_deployedContract.connect(voter1).castVote(1, 1);
         await voting_deployedContract.connect(voter2).castVote(2, 1);
-        // await voting_deployedContract.emergencyStopVoting();
         await voting_deployedContract.connect(voter3).castVote(3, 2);
 
-        // To test after voting has ended, increase time
-        // await time.increaseTo(parseInt(endTime) + 1); // +1 to safely go past end
+        // --- Simulate End of Voting Period ---
+        await time.increaseTo(parseInt(endTime) + 1);
 
-        // This should fail if time is increased above endTime
+        // --- Optional: Uncomment to test vote rejection after endTime ---
         // await voting_deployedContract.connect(voter4).castVote(4, 2);
 
-        // console.log(await voting_deployedContract.getVotersList());
-        // console.log(await voting_deployedContract.getCandidateList());
+        // --- Output Lists and Declare Result ---
+        //console.log(await voting_deployedContract.getVotersList());
+        //console.log(await voting_deployedContract.getCandidateList());
 
         await voting_deployedContract.announceVotingResult();
         // console.log(await voting_deployedContract.winner());

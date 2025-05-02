@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Voting {
     struct Voter {
@@ -48,7 +49,10 @@ contract Voting {
         Ended // 2
     }
 
-    constructor() {
+    IERC20 public pkbkToken;
+
+    constructor(address _pkbkToken) {
+        pkbkToken = IERC20(_pkbkToken);
         electionCommission = msg.sender;
     }
 
@@ -158,6 +162,7 @@ contract Voting {
         uint256 _voterId,
         uint256 _candidateId
     ) public isVotingOver {
+        require(pkbkToken.balanceOf(msg.sender) > 0, "Buy a token first");
         require(
             voterDetails[_voterId].voteCandidateId == 0,
             "You are already Voted"
