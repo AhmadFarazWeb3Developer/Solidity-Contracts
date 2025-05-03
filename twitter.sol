@@ -6,80 +6,139 @@ contract Twitter {
         uint256 tweetId;
         address author;
         string tweetContent;
-        uint timestamp;
+        uint256 createdAt;
     }
     struct Message {
         uint256 messageId;
         string messageContent;
         address sender;
         address receiver;
-        uint timestamp;
+        uint256 createdAt;
     }
 
-    Tweet[] public allTweets;
-    mapping(uint => Tweet) public tweets; // store all tweets
-    mapping(address => Tweet) public tweetsOf; // store tweet of each user
-    mapping(address => mapping(address => Message)) conversations;
+    mapping(uint256 => Tweet) public tweets; // store all tweets
+    mapping(address => uint256[]) public tweetsOf; // store tweet of each user
+    mapping(address => Message[]) public conversations;
     mapping(address => mapping(address => bool)) public operators;
-    uint256 public tweetId;
-    uint256 public messageId;
 
-    //  mapping(address)
+    mapping(address => address[]) public following;
+
+    uint256 public nextTweetId = 0;
+    uint256 public nextMessageId = 0;
 
     // _tweet(address _from, string memory _content): Internal function to handle the tweeting logic.
     function _tweet(address _from, string memory _content) internal {
-        Tweet memory newTweet = Tweet(
-            tweetId,
+        tweets[nextTweetId] = Tweet(
+            nextTweetId,
             _from,
             _content,
             block.timestamp
         );
-        allTweets.push(newTweet);
-        tweetId++;
+        tweetsOf[_from].push(nextTweetId);
+        nextTweetId++;
     }
 
     // _sendMessage(address _from, address _to, string memory _content): Internal function to handle messaging logic.
-
     function _sendMessage(
         address _from,
         address _to,
         string memory _content
-    ) internal {}
+    ) internal {
+        conversations[_from].push(
+            Message(nextMessageId, _content, _from, _to, block.timestamp)
+        );
+
+        nextMessageId++;
+    }
 
     // tweet(string memory _content): Allows a user to post a tweet.
-    function tweet(string memory _content) public {
-        require(msg.sender != address(0), "address doesn't exits");
-        require(bytes(_content).length > 0, "tweet cannot be empty");
+    function tweet(string memory _content) public emptyContent(_content) {
         _tweet(msg.sender, _content);
     }
 
+    modifier isAuthorized(address _from) {
+        require(operators[_from][msg.sender] == true, "Unauthorized");
+        _;
+    }
+    modifier emptyContent(string memory _content) {
+        require(bytes(_content).length > 0, "Content can't be empty");
+        _;
+    }
+    modifier invalidAddress(address _to) {
+        require(_to != address(0), "operator address is invalid");
+        _;
+    }
+
     // tweet(address _from, string memory _content): Allows an operator to post a tweet on behalf of a user.
-    function tweetOnBehalf(address _from, string memory _content) public {}
+    function tweetOnBehalf(
+        address _from,
+        string memory _content
+    ) public isAuthorized(_from) {
+        _tweet(_from, _content);
+    }
 
     // sendMessage(string memory _content, address _to): Allows a user to send a message.
-    function sendMessage(string memory _content, address _to) public {}
+    function sendMessage(
+        string memory _content,
+        address _to
+    ) public invalidAddress(_to) {
+        _sendMessage(msg.sender, _to, _content);
+    }
 
     // sendMessage(address _from, address _to, string memory _content): Allows an operator to send a message on behalf of a user.
-    function sendMessage(
+    function sendMessageOnBehalf(
         address _from,
         address _to,
         string memory _content
-    ) public {}
+    ) public isAuthorized(_from) {
+        _sendMessage(_from, _to, _content);
+    }
 
     // follow(address _followed): Allows a user to follow another user.
-    function follow(address _followed) public {}
+    function follow(address _followed) public invalidAddress(_followed) {
+        following[msg.sender].push(_followed);
+    }
 
     // allow(address _operator): Allows a user to authorize an operator.
-    function allow(address _operator) public {}
+    function allow(address _operator) public invalidAddress(_operator) {
+        operators[msg.sender][_operator] = true;
+    }
 
     // disallow(address _operator): Allows a user to revoke an operator's authorization.
-    function disallow(address _operator) public {}
+    function disallow(address _operator) public invalidAddress(_operator) {
+        operators[msg.sender][_operator] = false;
+    }
 
     // getLatestTweets(uint count): Returns the latest tweets across all users.
-    function getLatestTweets(uint _count) public {}
+    function getLatestTweets(
+        uint256 _count
+    ) public view returns (Tweet[] memory) {
+        Tweet[] memory latestTweets = new Tweet[](_count);
+        require(_count <= nextTweetId, "Cannot surpass tweetsLenght");
+        for (uint256 i = 0; i < latestTweets.length; i++) {
+            latestTweets[i] = tweets[i];
+        }
+        return latestTweets;
+    }
 
     // getLatestTweetsOf(address user, uint count): Returns the latest tweets of a specific user.
-    function getLatestTweetsOf(address _user, uint _count) public {}
+    function getLatestTweetsOf(
+        address _user,
+        uint256 _count
+    ) public view returns (Tweet[] memory) {
+        uint256[] storage userTweetIds = tweetsOf[_user];
+        require(
+            _count <= userTweetIds.length,
+            "Count exceeds user's tweet count"
+        );
 
-    // following: A mapping to store the list of users that each user follows.
+        Tweet[] memory latestTweetsOf = new Tweet[](_count);
+
+        uint256 start = userTweetIds.length - _count;
+        for (uint256 i = 0; i < _count; i++) {
+            uint256 tweetId = userTweetIds[start + i];
+            latestTweetsOf[i] = tweets[tweetId];
+        }
+        return latestTweetsOf;
+    }
 }
