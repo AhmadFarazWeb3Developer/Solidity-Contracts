@@ -26,7 +26,21 @@ contract Twitter {
     uint256 nextTweetId = 0;
     uint256 nextMessageId = 0;
 
-    // _tweet(address _from, string memory _content): Internal function to handle the tweeting logic.
+    modifier isAuthorized(address _from) {
+        require(operators[_from][msg.sender] == true, "Unauthorized");
+        _;
+    }
+
+    modifier checkEmptyContent(string memory _content) {
+        require(bytes(_content).length > 0, "Content can't be empty");
+        _;
+    }
+    modifier checkInvalidAddress(address _to) {
+        require(_to != address(0), "operator address is invalid");
+        _;
+    }
+
+    // Internal function to handle the tweeting logic.
     function _tweet(address _from, string memory _content) internal {
         tweets[nextTweetId] = Tweet(
             nextTweetId,
@@ -38,7 +52,7 @@ contract Twitter {
         nextTweetId++;
     }
 
-    // _sendMessage(address _from, address _to, string memory _content): Internal function to handle messaging logic.
+    // Internal function to handle messaging logic.
     function _sendMessage(
         address _from,
         address _to,
@@ -51,25 +65,12 @@ contract Twitter {
         nextMessageId++;
     }
 
-    // tweet(string memory _content): Allows a user to post a tweet.
-    function tweet(string memory _content) public emptyContent(_content) {
+    // Allows a user to post a tweet.
+    function tweet(string memory _content) public checkEmptyContent(_content) {
         _tweet(msg.sender, _content);
     }
 
-    modifier isAuthorized(address _from) {
-        require(operators[_from][msg.sender] == true, "Unauthorized");
-        _;
-    }
-    modifier emptyContent(string memory _content) {
-        require(bytes(_content).length > 0, "Content can't be empty");
-        _;
-    }
-    modifier invalidAddress(address _to) {
-        require(_to != address(0), "operator address is invalid");
-        _;
-    }
-
-    // tweet(address _from, string memory _content): Allows an operator to post a tweet on behalf of a user.
+    // Allows an operator to post a tweet on behalf of a user.
     function tweetOnBehalf(
         address _from,
         string memory _content
@@ -77,15 +78,15 @@ contract Twitter {
         _tweet(_from, _content);
     }
 
-    // sendMessage(string memory _content, address _to): Allows a user to send a message.
+    // Allows a user to send a message.
     function sendMessage(
         string memory _content,
         address _to
-    ) public invalidAddress(_to) {
+    ) public checkInvalidAddress(_to) {
         _sendMessage(msg.sender, _to, _content);
     }
 
-    // sendMessage(address _from, address _to, string memory _content): Allows an operator to send a message on behalf of a user.
+    //  Allows an operator to send a message on behalf of a user.
     function sendMessageOnBehalf(
         address _from,
         address _to,
@@ -94,14 +95,12 @@ contract Twitter {
         _sendMessage(_from, _to, _content);
     }
 
-    // follow(address _followed): Allows a user to follow another user.
-    function follow(address _address) public invalidAddress(_address) {
+    // Allows a user to follow another user.
+    function follow(address _address) public checkInvalidAddress(_address) {
         following[msg.sender].push(_address);
     }
 
-    // unfollow function
-
-    function unfollow(address _address) public invalidAddress(_address) {
+    function unfollow(address _address) public checkInvalidAddress(_address) {
         address[] storage followingList = following[msg.sender];
 
         for (uint256 i = 0; i < followingList.length; i++) {
@@ -109,23 +108,23 @@ contract Twitter {
                 for (uint256 j = i; j < followingList.length - 1; j++) {
                     followingList[j] = followingList[j + 1];
                 }
-                followingList.pop(); // Remove the last duplicate
-                break; // Exit after removing the address
+                followingList.pop();
+                break;
             }
         }
     }
 
-    // allow(address _operator): Allows a user to authorize an operator.
-    function allow(address _operator) public invalidAddress(_operator) {
+    // Allows a user to authorize an operator.
+    function allow(address _operator) public checkInvalidAddress(_operator) {
         operators[msg.sender][_operator] = true;
     }
 
-    // disallow(address _operator): Allows a user to revoke an operator's authorization.
-    function disallow(address _operator) public invalidAddress(_operator) {
+    // Allows a user to revoke an operator's authorization.
+    function disallow(address _operator) public checkInvalidAddress(_operator) {
         operators[msg.sender][_operator] = false;
     }
 
-    // getLatestTweets(uint count): Returns the latest tweets across all users.
+    //  Returns the latest tweets across all users.
     function getLatestTweets(
         uint256 _count
     ) public view returns (Tweet[] memory) {
@@ -139,7 +138,7 @@ contract Twitter {
         return latestTweets;
     }
 
-    // getLatestTweetsOf(address user, uint count): Returns the latest tweets of a specific user.
+    // Returns the latest tweets of a specific user.
     function getLatestTweetsOf(
         address _user,
         uint256 _count

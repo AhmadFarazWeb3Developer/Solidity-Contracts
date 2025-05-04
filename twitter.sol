@@ -108,23 +108,23 @@ contract Twitter {
                 for (uint256 j = i; j < followingList.length - 1; j++) {
                     followingList[j] = followingList[j + 1];
                 }
-                followingList.pop(); // Remove the last duplicate
-                break; // Exit after removing the address
+                followingList.pop();
+                break;
             }
         }
     }
 
-    // allow(address _operator): Allows a user to authorize an operator.
+    // Allows a user to authorize an operator.
     function allow(address _operator) public checkInvalidAddress(_operator) {
         operators[msg.sender][_operator] = true;
     }
 
-    // disallow(address _operator): Allows a user to revoke an operator's authorization.
+    // Allows a user to revoke an operator's authorization.
     function disallow(address _operator) public checkInvalidAddress(_operator) {
         operators[msg.sender][_operator] = false;
     }
 
-    // getLatestTweets(uint count): Returns the latest tweets across all users.
+    //  Returns the latest tweets across all users.
     function getLatestTweets(
         uint256 _count
     ) public view returns (Tweet[] memory) {
@@ -138,7 +138,7 @@ contract Twitter {
         return latestTweets;
     }
 
-    // getLatestTweetsOf(address user, uint count): Returns the latest tweets of a specific user.
+    // Returns the latest tweets of a specific user.
     function getLatestTweetsOf(
         address _user,
         uint256 _count

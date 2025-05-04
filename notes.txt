@@ -1,7 +1,0 @@
-
-    // -> making a variable or function private does not mean its not visiable,
-    // its there in bytecode in blockchain , just access gets limited
-
-    // -> we can store the struct in array but its get expensive while iterating
-
-    // -> we cannot return an entire mapping, array can be returned
