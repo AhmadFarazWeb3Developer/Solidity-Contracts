@@ -14,7 +14,20 @@ describe("To Do List", () => {
 
     it("Should create a task", async () => {
       await deployed_contract.createTask("My second task");
-      console.log(await deployed_contract.getAllTask());
+      expect(await deployed_contract.getAllTask()).to.have.lengthOf(2);
+    });
+
+    it("Should toggle task to complete(true)", async () => {
+      await deployed_contract.toggleTaskStatus(0, true);
+      await deployed_contract.toggleTaskStatus(1, true);
+      const result = await deployed_contract.getAllTask();
+      result.forEach((task) => {
+        expect(task[2]).to.equal(true);
+      });
+    });
+    it("Should get detail of specfic task", async () => {
+      const result = await deployed_contract.getTaskDetails(0);
+      expect(parseInt(result[0])).to.equal(0);
     });
   });
 });
