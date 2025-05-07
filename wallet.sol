@@ -42,8 +42,11 @@ contract Wallet {
         payable(owner).transfer(msg.value);
     }
 
+    // receiv function is at the top prority if its exists its called
+
     receive() external payable {}
 
+    // if receive function exists its called otherwise the transaction is reverted
     fallback() external {} // it executes when the contract function is called  which does'nt exists here
 
     // this issue come when user interact with low level calls , there is chance of panic
