@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
+import "hardhat/console.sol";
 
 contract Wallet {
     struct Transaction {
@@ -27,7 +28,7 @@ contract Wallet {
 
     modifier SuspiciousUser(address _sender) {
         require(
-            suspiciousUser[_sender] < 5,
+            suspiciousUserCouter < 5,
             "Activity found suspicious, Try later"
         );
         _;
@@ -49,10 +50,7 @@ contract Wallet {
         suspiciousUser[owner] = suspiciousUserCouter++;
     }
 
-    function transferToContract(
-        uint _startTime
-    ) external payable SuspiciousUser(msg.sender) {
-        require(block.timestamp > _startTime, "send after start time");
+    function transferToContract() external payable SuspiciousUser(msg.sender) {
         transactionHistory.push(
             Transaction(msg.sender, address(this), block.timestamp, msg.value)
         );

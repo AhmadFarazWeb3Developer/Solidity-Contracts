@@ -18,9 +18,8 @@ describe("Wallet", () => {
         await loadFixture(WalletDeployment));
     });
     it("Shoud transfer ETH to contract", async () => {
-      const time = 3600;
       const Ethers = await ethers.parseEther("10");
-      await deployed_contract.transferToContract(time, { value: Ethers });
+      await deployed_contract.transferToContract({ value: Ethers });
       expect(
         await ethers.formatEther(
           await ethers.provider.getBalance(deployed_contract.target)
@@ -28,10 +27,9 @@ describe("Wallet", () => {
       ).to.equal("10.0");
     });
     it("Should transfer ETH via contract", async () => {
-      const time = 3600;
       const Ethers = await ethers.parseEther("10");
       // first send eth to contract
-      await deployed_contract.transferToContract(time, { value: Ethers });
+      await deployed_contract.transferToContract({ value: Ethers });
       await deployed_contract.transferToUserViaContract(acct1, Ethers);
     });
   });
@@ -41,16 +39,24 @@ describe("Wallet", () => {
     });
 
     it("Should change the owner", async () => {
-      await deployed_contract.connect(owner).changeOwner(acct1);
-      console.log(await deployed_contract.suspiciousUser(acct1));
-      await deployed_contract.connect(acct1).changeOwner(acct2);
-      console.log(await deployed_contract.suspiciousUser(acct2));
-      await deployed_contract.connect(acct2).changeOwner(acct3);
-      console.log(await deployed_contract.suspiciousUser(acct3));
-      await deployed_contract.connect(acct3).changeOwner(acct4);
-      console.log(await deployed_contract.suspiciousUser(acct4));
-      await deployed_contract.connect(acct4).changeOwner(acct5);
-      console.log(await deployed_contract.suspiciousUserCouter());
+      let accouts = [owner, acct1, acct2, acct3, acct4];
+
+      // increase couter to five then try to add new owner
+      for (let i = 0; i < accouts.length - 1; i++) {
+        await deployed_contract.connect(accouts[i]).changeOwner(accouts[i + 1]);
+      }
+
+      expect(await deployed_contract.suspiciousUserCouter()).to.equal(5n);
+      // should not add the more then 4 owners
+      await expect(
+        deployed_contract.connect(accouts[4]).changeOwner(acct5)
+      ).to.be.revertedWith("Activity found suspicious, Try later");
+    });
+    it("Should declare the emergency", async () => {
+      await deployed_contract.toggleStop();
+      await expect(
+        deployed_contract.connect(owner).changeOwner(acct1)
+      ).to.be.revertedWith("Emergency declared");
     });
   });
 });
