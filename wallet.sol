@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.26;
 
 contract Wallet {
     struct Transaction {
@@ -10,8 +10,9 @@ contract Wallet {
     }
 
     Transaction[] public transactionHistory;
-    mapping(address => uint) suspiciousUser;
+    mapping(address => uint) public suspiciousUser;
 
+    uint public suspiciousUserCouter = 1;
     address public owner;
     bool public stop;
 
@@ -43,8 +44,9 @@ contract Wallet {
 
     function changeOwner(
         address newOwner
-    ) public onlyOwner isEmergencyDeclared {
+    ) public onlyOwner SuspiciousUser(newOwner) isEmergencyDeclared {
         owner = newOwner;
+        suspiciousUser[owner] = suspiciousUserCouter++;
     }
 
     function transferToContract(
