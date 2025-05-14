@@ -36,6 +36,7 @@ contract ERC721 {
         return totalTokensSupply;
     }
 
+    // token identifier
     function tokenURI(uint256 _tokenId) external view returns (string memory) {
         return tokenURIs[_tokenId];
     }
