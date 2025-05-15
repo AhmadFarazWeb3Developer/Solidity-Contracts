@@ -96,21 +96,25 @@ contract ERC721 {
         _transfer(_from, _to, _tokenId);
     }
 
+    // giving approval to an address to send tokens on owner behalf
     function approve(address _approved, uint256 _tokenId) public payable {
         require(ownerOf(_tokenId) == msg.sender, "!Owner");
         _tokenApprovals[_tokenId] = _approved;
         emit Approval(ownerOf(_tokenId), _approved, _tokenId);
     }
 
+    // giving approval of all tokens to a specific address
     function setApprovalForAll(address _operator, bool _approved) public {
         _operatorApprovals[msg.sender][_operator] = _approved;
         emit ApprovalForAll(msg.sender, _operator, _approved);
     }
 
+    // returning approved account address
     function getApproved(uint256 _tokenId) public view returns (address) {
         return _tokenApprovals[_tokenId];
     }
 
+    // returning approval of all tokens against specific address
     function isApprovedForAll(
         address _owner,
         address _operator
@@ -118,6 +122,7 @@ contract ERC721 {
         return _operatorApprovals[_owner][_operator];
     }
 
+    // minting NFTs
     function mintTo(address _to, string memory _uri) public {
         require(contractOwner == msg.sender, "!Auth");
         _owners[nextTokenIdToMint] = _to;
@@ -127,10 +132,12 @@ contract ERC721 {
         nextTokenIdToMint += 1;
     }
 
+    // returning tokens URI
     function tokenURI(uint256 _tokenId) public view returns (string memory) {
         return _tokenUris[_tokenId];
     }
 
+    // returning total supply
     function totalSupply() public view returns (uint256) {
         return nextTokenIdToMint;
     }
