@@ -16,8 +16,20 @@ describe("ERC721 Contract", () => {
         ERC721ContractDeplyoment
       ));
     });
-    it("Should check the contract name", async () => {
+    it("Should check the contract owner", async () => {
+      console.log(await deployed_erc721.contractOwner());
+    });
+    it("Should check the collection name", async () => {
       console.log(await deployed_erc721.name());
+    });
+    it("Should check the collection symbol ", async () => {
+      console.log(await deployed_erc721.symbol());
+    });
+    it("Should check the next token Id ", async () => {
+      console.log(await deployed_erc721.nextTokenIdToMint());
+    });
+    it("Should check the total supply ", async () => {
+      console.log(await deployed_erc721.totalSupply());
     });
   });
 });
