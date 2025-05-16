@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.22;
 
 // Interface that defines the standard function a contract must implement to receive ERC721 tokens safely
 import "./IERC721Receiver.sol";
@@ -32,23 +32,6 @@ contract ERC721 {
 
     // Mapping from token ID to metadata URI
     mapping(uint256 => string) _tokenUris;
-
-    // Standard events for ERC721
-    event Transfer(
-        address indexed _from,
-        address indexed _to,
-        uint256 indexed _tokenId
-    );
-    event Approval(
-        address indexed _owner,
-        address indexed _approved,
-        uint256 indexed _tokenId
-    );
-    event ApprovalForAll(
-        address indexed _owner,
-        address indexed _operator,
-        bool _approved
-    );
 
     // Constructor sets token name and symbol, assigns contract owner
     constructor(string memory _name, string memory _symbol) {
@@ -145,7 +128,7 @@ contract ERC721 {
         _owners[nextTokenIdToMint] = _to;
         _balances[_to] += 1;
         _tokenUris[nextTokenIdToMint] = _uri;
-        emit Transfer(address(0), _to, nextTokenIdToMint); // minting is a transfer from 0x0
+        emit Transfer(msg.sender, _to, nextTokenIdToMint); // minting is a transfer from 0x0
         nextTokenIdToMint += 1;
     }
 
@@ -205,4 +188,21 @@ contract ERC721 {
 
         emit Transfer(_from, _to, _tokenId); // emit standard transfer event
     }
+
+    // Standard events for ERC721
+    event Transfer(
+        address indexed _from,
+        address indexed _to,
+        uint256 indexed _tokenId
+    );
+    event Approval(
+        address indexed _owner,
+        address indexed _approved,
+        uint256 indexed _tokenId
+    );
+    event ApprovalForAll(
+        address indexed _owner,
+        address indexed _operator,
+        bool _approved
+    );
 }
