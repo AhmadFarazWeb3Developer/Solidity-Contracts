@@ -5,6 +5,7 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { deployERC20 } = require("./utils/ERC20");
+const { ZeroAddress } = require("ethers");
 
 describe("Voting", () => {
   const deployVotingContract = async () => {
@@ -102,9 +103,7 @@ describe("Voting", () => {
       });
 
       it("Should check the winner", async () => {
-        expect(await voting_deployedContract.winner()).to.equal(
-          "0x0000000000000000000000000000000000000000"
-        );
+        expect(await voting_deployedContract.winner()).to.equal(ZeroAddress);
       });
 
       it("Should check voting status", async () => {
