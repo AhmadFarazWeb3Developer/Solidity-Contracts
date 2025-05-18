@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
-import "./interface.sol";
 
-contract Contract2 is Check {
-    uint value = 100;
+import "./ERC165_DEMO.sol";
 
-    function ShouldImplement(uint _Value) public view returns (uint) {
-        return value + _Value;
+contract Contract2 is ERC165_DEMO {
+    string public World;
+    uint public Value;
+
+    function hello() external override {
+        World = "World";
     }
 
-    function supportsInterface(bytes4 interfaceID) public pure returns (bool) {
-        return interfaceID == type(Check).interfaceId;
+    function world(uint _value) external override {
+        Value = _value;
     }
 }
