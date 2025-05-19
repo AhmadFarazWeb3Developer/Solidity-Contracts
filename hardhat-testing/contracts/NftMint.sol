@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
+contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
     bytes32 immutable merkleRoot;
 
     address[] private teamMembers = [
@@ -16,21 +16,21 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
         0x4B20993Bc481177ec7E8f571ceCaE8A9e22C02db,
         0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB
     ];
-    uint256[] private teamShares = [20, 40, 40];
-    mapping(address => uint) private presaleCount;
-    mapping(uint => string) private tokenCIDs;
+    uint256[] private teamShares = [20, 40, 40, 10];
+    mapping(address => uint256) private presaleCount;
+    mapping(uint256 => string) public tokenCIDs;
     string private baseURI;
 
     // inializationn of contant is compulsory, const is gas efficient then immutable
-    uint constant PRESALE_LIMIT = 5;
-    uint constant NFT_PRICE = 0.01 ether;
-    uint constant MAX_SUPPLLY = 20;
+    uint256 constant PRESALE_LIMIT = 5;
+    uint256 constant NFT_PRICE = 0.01 ether;
+    uint256 constant MAX_SUPPLLY = 20;
 
     bool public isPaused;
     bool public isPresaleActive;
     bool public isPublicsaleActive;
 
-    uint tokenCountId;
+    uint256 tokenCountId;
 
     constructor(
         bytes32 _root,
@@ -69,25 +69,42 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
     }
 
     function preSaleMint(
-        uint nftAmount,
+        uint256 _nftAmount,
         bytes32[] memory _proof,
-        uint[] calldata cids
-    ) public onlyEOA nonReentrant isVerified(_proof) {
+        string[] calldata _cids
+    ) external payable onlyEOA nonReentrant isVerified(_proof) {
         require(!isPublicsaleActive, "Contract not active");
         require(!isPresaleActive, "Contract not active");
-        require(nftAmount > 0, "nftAmount > 0");
+        require(_nftAmount > 0, "nftAmount < 0");
         require(
-            presaleCount[msg.sender] + nftAmount < PRESALE_LIMIT,
+            presaleCount[msg.sender] + _nftAmount <= PRESALE_LIMIT,
             "Presale limit exceeded"
         );
         require(
-            tokenCountId + nftAmount <= MAX_SUPPLLY,
+            tokenCountId + _nftAmount <= MAX_SUPPLLY,
             "MAX_SUPPLLY exceeded"
         );
-        require(cids.length == nftAmount, "NFT Ammount != CIDs ");
+        require(_cids.length == _nftAmount, "NFT Ammount != CIDs ");
+        require(msg.value >= _nftAmount * NFT_PRICE, "Not enough eth");
+        for (uint256 i = 0; i < _nftAmount; i++) {
+            _mint(msg.sender, _cids[i]);
+        }
+    }
 
-        for (uint i = 0; i < nftAmount; i++) {
-            _mint(msg.sender, cids[i]);
+    function publicSaleMint(
+        uint256 _nftAmount,
+        string[] calldata _cids
+    ) external payable onlyEOA nonReentrant {
+        require(!isPublicsaleActive, "Contract not active");
+        require(_nftAmount > 0, "nftAmount < 0");
+        require(
+            tokenCountId + _nftAmount <= MAX_SUPPLLY,
+            "MAX_SUPPLLY exceeded"
+        );
+        require(_cids.length == _nftAmount, "NFT Ammount != CIDs ");
+        require(msg.value >= _nftAmount * NFT_PRICE * 2, "Not enough eth"); // double the presale price
+        for (uint256 i = 0; i < _nftAmount; i++) {
+            _mint(msg.sender, _cids[i]);
         }
     }
 
@@ -96,5 +113,18 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
         tokenCIDs[tokenCountId] = _cid;
 
         tokenCountId++;
+    }
+
+    function totalSupply() public view returns (uint) {
+        return tokenCountId;
+    }
+
+    function remainingSupply() public view returns (uint) {
+        return MAX_SUPPLLY - tokenCountId;
+    }
+
+    function withDraw() external payable onlyOwner {
+        require(address(this).balance > 0, "Insufficient balance");
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
