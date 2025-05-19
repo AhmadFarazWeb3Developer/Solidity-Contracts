@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract MerkleTree {
-    bytes32 private root;
+    bytes32 public root;
 
     constructor(bytes32 _root) {
         root = _root;
