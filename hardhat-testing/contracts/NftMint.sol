@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
     bytes32 immutable merkleRoot;
-    bytes32[] proof;
 
     address[] private teamMembers = [
         0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
@@ -18,7 +17,8 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
         0x78731D3Ca6b7E34aC0F824c42a7cC18A495cabaB
     ];
     uint256[] private teamShares = [20, 40, 40];
-
+    mapping(address => uint) private presaleCount;
+    mapping(uint => string) private tokenCIDs;
     string private baseURI;
 
     // inializationn of contant is compulsory, const is gas efficient then immutable
@@ -28,7 +28,9 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
 
     bool public isPaused;
     bool public isPresaleActive;
-    bool public isPublic;
+    bool public isPublicsaleActive;
+
+    uint tokenCountId;
 
     constructor(
         bytes32 _root,
@@ -46,7 +48,7 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
         require(tx.origin == msg.sender, "Contracts call not allowed");
         _;
     }
-    modifier isVerified() {
+    modifier isVerified(bytes32[] memory proof) {
         require(
             MerkleProof.verify(
                 proof,
@@ -56,5 +58,43 @@ abstract contract MintNFT is ERC721, Ownable, ReentrancyGuard, PaymentSplitter {
             "Proof is not valid"
         );
         _;
+    }
+
+    function togglePreSale() external onlyOwner {
+        isPresaleActive = !isPresaleActive;
+    }
+
+    function togglePublicSale() external onlyOwner {
+        isPublicsaleActive = !isPublicsaleActive;
+    }
+
+    function preSaleMint(
+        uint nftAmount,
+        bytes32[] memory _proof,
+        uint[] calldata cids
+    ) public onlyEOA nonReentrant isVerified(_proof) {
+        require(!isPublicsaleActive, "Contract not active");
+        require(!isPresaleActive, "Contract not active");
+        require(nftAmount > 0, "nftAmount > 0");
+        require(
+            presaleCount[msg.sender] + nftAmount < PRESALE_LIMIT,
+            "Presale limit exceeded"
+        );
+        require(
+            tokenCountId + nftAmount <= MAX_SUPPLLY,
+            "MAX_SUPPLLY exceeded"
+        );
+        require(cids.length == nftAmount, "NFT Ammount != CIDs ");
+
+        for (uint i = 0; i < nftAmount; i++) {
+            _mint(msg.sender, cids[i]);
+        }
+    }
+
+    function _mint(address _to, string memory _cid) internal {
+        _safeMint(_to, tokenCountId);
+        tokenCIDs[tokenCountId] = _cid;
+
+        tokenCountId++;
     }
 }

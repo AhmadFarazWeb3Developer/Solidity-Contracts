@@ -18,6 +18,7 @@ describe("Merkle Proof ", () => {
       allowedAddresses,
       await targetSigner.getAddress()
     );
+    console.log(root);
     const Contract = await ethers.getContractFactory("MerkleTree");
     const deployed_merkleProof = await Contract.deploy(root);
     await deployed_merkleProof.waitForDeployment();
