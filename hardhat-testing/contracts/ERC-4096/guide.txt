@@ -1,0 +1,21 @@
+-> A User sends pseduo-transaction object called a UserOperation
+   to a seperate mempool, called the Alt-mempool.
+
+-> A special class actor, called a bundler, package up a set of these UserOperation
+   objects into a transaction.
+
+-> This transaction is sent to a special contract called EntryPoint.sol,
+   which processes each UserOperation via the handleOps function (or handleOp if it's one at a time).
+
+-> The bundled transaction is then gets included in a block.
+
+-> The user operation will come from frontend, contains:
+
+  const userOp = {
+    sender: predictedAccount,
+    callData,
+    initCode,
+    signature,
+    paymasterAndData,
+    ...
+  };
