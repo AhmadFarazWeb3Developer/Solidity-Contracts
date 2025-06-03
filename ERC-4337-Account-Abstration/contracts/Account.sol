@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.19;
 
 import "@account-abstraction/contracts/core/EntryPoint.sol";
 import "@account-abstraction/contracts/interfaces/IAccount.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-
-// import "@account-abstraction/contracts/interfaces/UserOperation.sol";
+import "@account-abstraction/contracts/interfaces/UserOperation.sol";
 
 contract Account is IAccount {
     uint256 public count;
@@ -25,10 +24,8 @@ contract Account is IAccount {
     ) external view override returns (uint256 validationData) {
         require(msg.sender == address(entryPoint), "Only EntryPoint can call");
 
-        // Recreate Ethereum signed message hash
         bytes32 ethSignedHash = ECDSA.toEthSignedMessageHash(userOpHash);
 
-        // Recover signer
         address recovered = ECDSA.recover(ethSignedHash, userOp.signature);
 
         // Validate

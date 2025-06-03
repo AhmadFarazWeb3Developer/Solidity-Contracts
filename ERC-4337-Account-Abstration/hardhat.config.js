@@ -1,10 +1,11 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("@nomicfoundation/hardhat-ignition"); // make sure this is included!
 
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   defaultNetwork: "localhost",
   solidity: {
-    version: "0.8.19",
+    version: "0.8.28",
+
     settings: {
       optimizer: {
         enabled: true,

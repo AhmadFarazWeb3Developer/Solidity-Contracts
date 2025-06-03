@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+// pragma solidity ^0.8.22;
+pragma solidity ^0.8.19;
 
 // Interface that defines the standard function a contract must implement to receive ERC721 tokens safely
 import "./IERC721Receiver.sol";
