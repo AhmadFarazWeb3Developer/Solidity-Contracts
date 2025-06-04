@@ -69,6 +69,7 @@ const sentToBundler = async () => {
 
   // Generate hash
   const opHash = await entryPoint.getUserOpHash(UserOperation);
+
   // Sign the userOpHash with your smart wallet owner’s private key:
   const sig = await owner.signMessage(await hre.ethers.getBytes(opHash));
 
@@ -88,7 +89,6 @@ const sentToBundler = async () => {
    to look up the status of the user operation.
     If it fails, or another error occurs, an error code and 
     description will be returned.
-    
     */
 };
 
