@@ -2,96 +2,170 @@ const hre = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 
-const deploymentPath = path.join(
+// Constants
+const DEPLOYMENT_PATH = path.join(
   __dirname,
   "../ignition/deployments/chain-31337/deployed_addresses.json"
 );
-
-const deployedAddresses = JSON.parse(fs.readFileSync(deploymentPath, "utf-8"));
-
-console.log("Deployed Address ", deployedAddresses);
-
 const FACTORY_NONCE = 1;
+const DEPOSIT_AMOUNT = "100"; // ETH
+const GAS_CONFIG = {
+  callGasLimit: 200_000,
+  verificationGasLimit: 1_000_000,
+  preVerificationGas: 50_000,
+  maxFeePerGas: hre.ethers.parseUnits("10", "gwei"),
+  maxPriorityFeePerGas: hre.ethers.parseUnits("5", "gwei"),
+};
 
-// Extract the deployed addresses
+// Load deployed contract addresses
+const loadDeployedAddresses = () => {
+  try {
+    const data = fs.readFileSync(DEPLOYMENT_PATH, "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    throw new Error(`Failed to read deployment file: ${error.message}`);
+  }
+};
 
-const EP_ADDRESS = deployedAddresses["ERC4337#EntryPoint"];
-const FACTORY_ADDRESS = deployedAddresses["ERC4337#AccountFactory"];
+// Get contract instances
+const getContracts = async (deployedAddresses) => {
+  const entryPointAddress = deployedAddresses["ERC4337#EntryPoint"];
+  const factoryAddress = deployedAddresses["ERC4337#AccountFactory"];
 
-console.log("Entry Point Address : ", EP_ADDRESS);
-console.log("Factory Address : ", FACTORY_ADDRESS);
+  if (!entryPointAddress || !factoryAddress) {
+    throw new Error(
+      "Missing EntryPoint or AccountFactory address in deployment file"
+    );
+  }
 
-const sentToBundler = async () => {
-  const entryPoint = await hre.ethers.getContractAt("EntryPoint", EP_ADDRESS);
+  const entryPoint = await hre.ethers.getContractAt(
+    "EntryPoint",
+    entryPointAddress
+  );
+  const accountFactory = await hre.ethers.getContractFactory("AccountFactory");
+  const account = await hre.ethers.getContractFactory("Account");
+
+  return { entryPoint, accountFactory, account, factoryAddress };
+};
+
+// Calculate sender address
+const getSenderAddress = async (factoryAddress) => {
   const sender = await hre.ethers.getCreateAddress({
-    from: FACTORY_ADDRESS,
+    from: factoryAddress,
     nonce: FACTORY_NONCE,
   });
+  return sender;
+};
 
-  const AccountFactory = await hre.ethers.getContractFactory("AccountFactory");
-  const [owner] = await hre.ethers.getSigners();
-
-  // const initCode =
-  //   FACTORY_ADDRESS +
-  //   AccountFactory.interface
-  //     .encodeFunctionData("createAccount", [owner.address, EP_ADDRESS])
-  //     .slice(2);
-
+// Generate initCode for wallet deployment
+const getInitCode = async (
+  accountFactory,
+  factoryAddress,
+  ownerAddress,
+  entryPointAddress,
+  sender
+) => {
   const code = await hre.ethers.provider.getCode(sender);
   const isDeployed = code !== "0x";
 
-  const initCode = isDeployed
-    ? "0x"
-    : FACTORY_ADDRESS +
-      AccountFactory.interface
-        .encodeFunctionData("createAccount", [owner.address, EP_ADDRESS])
-        .slice(2);
+  if (isDeployed) return "0x";
 
-  await entryPoint.depositTo(sender, {
-    value: await hre.ethers.parseEther("100"),
-  });
+  return (
+    factoryAddress +
+    accountFactory.interface
+      .encodeFunctionData("createAccount", [ownerAddress, entryPointAddress])
+      .slice(2)
+  );
+};
 
-  const Account = await hre.ethers.getContractFactory("Account");
-
-  const UserOperation = {
+// Create and sign UserOperation
+const createUserOperation = async (entryPoint, account, sender, initCode) => {
+  const nonce = await entryPoint.getNonce(sender, 0);
+  const userOp = {
     sender,
-    nonce: await entryPoint.getNonce(sender, 0),
+    nonce,
     initCode,
-    callData: Account.interface.encodeFunctionData("execute"),
-    callGasLimit: 200_000,
-    verificationGasLimit: 1000_000,
-    preVerificationGas: 50_000,
-    maxFeePerGas: await hre.ethers.parseUnits("10", "gwei"),
-    maxPriorityFeePerGas: await hre.ethers.parseUnits("5", "gwei"),
+    callData: account.interface.encodeFunctionData("execute"),
+    callGasLimit: GAS_CONFIG.callGasLimit,
+    verificationGasLimit: GAS_CONFIG.verificationGasLimit,
+    preVerificationGas: GAS_CONFIG.preVerificationGas,
+    maxFeePerGas: await GAS_CONFIG.maxFeePerGas,
+    maxPriorityFeePerGas: await GAS_CONFIG.maxPriorityFeePerGas,
     paymasterAndData: "0x",
     signature: "0x",
   };
 
-  // Generate hash
-  const opHash = await entryPoint.getUserOpHash(UserOperation);
+  const opHash = await entryPoint.getUserOpHash(userOp);
+  const [owner] = await hre.ethers.getSigners();
+  const signature = await owner.signMessage(hre.ethers.getBytes(opHash));
+  userOp.signature = signature;
 
-  // Sign the userOpHash with your smart wallet owner’s private key:
-  const sig = await owner.signMessage(await hre.ethers.getBytes(opHash));
-
-  UserOperation.signature = sig;
-
-  // For the time beings we are on local so that why we are not using
-  // api for bundler
-
-  const tx = await entryPoint.handleOps([UserOperation], owner.address);
-  const receipt = await tx.wait();
-  console.log(receipt);
-
-  /*
-    eth_sendUserOperation
-   Submits a user operation to a Bundler. If the request is successful,
-   the endpoint will return a user operation hash that the caller can use
-   to look up the status of the user operation.
-    If it fails, or another error occurs, an error code and 
-    description will be returned.
-    */
+  return userOp;
 };
 
-sentToBundler().catch((err) => {
-  console.error(err);
+// Main function to submit UserOperation
+const sendToBundler = async () => {
+  try {
+    // Load deployed addresses
+    const deployedAddresses = loadDeployedAddresses();
+    console.log("Deployed Addresses:", deployedAddresses);
+
+    // Get contract instances
+    const { entryPoint, accountFactory, account, factoryAddress } =
+      await getContracts(deployedAddresses);
+    console.log("EntryPoint Address:", deployedAddresses["ERC4337#EntryPoint"]);
+    console.log("AccountFactory Address:", factoryAddress);
+
+    // Calculate sender address
+    const sender = await getSenderAddress(factoryAddress);
+    console.log("Sender Address:", sender);
+
+    // Deposit funds to EntryPoint for sender
+    await entryPoint.depositTo(sender, {
+      value: hre.ethers.parseEther(DEPOSIT_AMOUNT),
+    });
+    console.log(`Deposited ${DEPOSIT_AMOUNT} ETH to EntryPoint for sender`);
+
+    // Generate initCode
+    const [owner] = await hre.ethers.getSigners();
+    const initCode = await getInitCode(
+      accountFactory,
+      factoryAddress,
+      owner.address,
+      deployedAddresses["ERC4337#EntryPoint"],
+      sender
+    );
+    console.log("InitCode:", initCode);
+
+    // Create and sign UserOperation
+    const userOp = await createUserOperation(
+      entryPoint,
+      account,
+      sender,
+      initCode
+    );
+    console.log("UserOperation:", userOp);
+
+    // Submit UserOperation to EntryPoint (simulating bundler)
+    // Note: Using handleOps directly since we're on a local network (no bundler API)
+    const tx = await entryPoint.handleOps([userOp], owner.address);
+    const receipt = await tx.wait();
+    console.log("Transaction Receipt:", receipt);
+
+    /*
+     * eth_sendUserOperation:
+     * In a production environment, a bundler would submit the UserOperation via an API.
+     * If successful, it returns a userOpHash to track status. If it fails, an error is returned.
+     * Here, we use handleOps directly for local testing.
+     */
+  } catch (error) {
+    console.error("Error in sendToBundler:", error);
+    throw error;
+  }
+};
+
+// Execute the main function
+sendToBundler().catch((error) => {
+  console.error("Failed to execute sendToBundler:", error);
+  process.exit(1);
 });
