@@ -6,6 +6,9 @@ import "@account-abstraction/contracts/interfaces/IAccount.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@account-abstraction/contracts/interfaces/UserOperation.sol";
 
+
+// Account contract is the actual smart wallet which can have logics
+// like transfer tokens etc
 contract Account is IAccount {
     uint256 public count;
     address public owner;
@@ -28,7 +31,7 @@ contract Account is IAccount {
 
         address recovered = ECDSA.recover(ethSignedHash, userOp.signature);
 
-        // Validate
+        // validation
         if (recovered != owner) {
             return 1; // invalid
         }
@@ -37,12 +40,15 @@ contract Account is IAccount {
     }
 
     /// @notice Only EntryPoint can call actual execution
+    // any function can be implemented like transfer etc
     function execute() external {
         require(msg.sender == address(entryPoint), "Only EntryPoint can call");
         count++;
     }
 }
 
+
+// creates the new smart account which is Account
 contract AccountFactory {
     function createAccount(
         address owner,
