@@ -1,53 +1,67 @@
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const {
+  loadFixture,
+  time,
+} = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
-const { expect, version } = require("chai");
+const { expect } = require("chai");
 
-describe("EIP712 Signature Verification", () => {
-  const deployedEIP712Contract = async () => {
+describe("Direct Spender Authorization", () => {
+  async function deploy() {
     const [owner, spender, attacker] = await ethers.getSigners();
-    const CONTRACT = await ethers.getContractFactory("EIP712");
-    const deployedContract = await CONTRACT.deploy(spender);
-    await deployedContract.waitForDeployment();
+    const Contract = await ethers.getContractFactory("EIP712Auth");
+    const contract = await Contract.deploy();
+    return { contract, owner, spender, attacker };
+  }
 
-    return { deployedContract, owner, spender, attacker };
-  };
+  it("should let owner authorize spender via signature", async () => {
+    const { contract, owner, spender, attacker } = await loadFixture(deploy);
 
-  it("should sign EIP712 message and verify on-chain", async () => {
-    const { deployedContract, owner, spender } = await loadFixture(
-      deployedEIP712Contract
-    );
+    // EIP-712 Setup
+    const chainId = (await ethers.provider.getNetwork()).chainId;
 
-    // Implementing EIP712 now
-
-    // 1. EIP-712 Domain seperator
-
-    const chainId = await owner.getChainId();
-
-    domain = {
-      name: "My Dapp",
-      version: 1,
-      chainId: chainId,
-      verifyingContract: await deployedContract.address(),
+    const domain = {
+      name: "EIP712Auth",
+      version: "1",
+      chainId,
+      verifyingContract: await contract.getAddress(),
     };
 
-    // 2. EIP-712 types
-
-    types = {
-      SetValue: [
-        { name: "caller", type: "address" },
+    const types = {
+      Authorize: [
+        { name: "authorizedUser", type: "address" },
         { name: "deadline", type: "uint256" },
       ],
     };
 
-    // 3. Message to Sign
-    message = {
-      caller: spender.address,
-      deadline: Math.floor(Date.now() / 1000) + 3600,
+    // Use latest block timestamp
+    const now = await time.latest();
+    const deadline = now + 3600;
+
+    // Owner creates signature authorizing spender
+    const authMessage = {
+      authorizedUser: spender.address,
+      deadline,
     };
 
-    const signature = await owner.signTypedData(domain, types, message);
-    const deadline = Math.floor(Date.now() / 1000) + 3600;
+    // Generates an EIP-712 signature
+    const signature = await owner.signTypedData(domain, types, authMessage);
 
-    await deployedContract.connect(user).setValue(deadline, signature);
+    // Spender executes with their own address as msg.sender
+    await contract.connect(spender).executeWithAuth(deadline, signature);
+
+    expect(await contract.s_action()).to.be.true;
+
+    // Attacker can't use the same signature (signature is bound to spender.address)
+    await expect(
+      contract.connect(attacker).executeWithAuth(deadline, signature)
+    ).to.be.revertedWith("Invalid signature");
+
+    // Advance block time past the deadline to test expiration logic
+    await time.increaseTo(deadline + 1);
+
+    // Signature should now be rejected as expired
+    await expect(
+      contract.connect(spender).executeWithAuth(deadline, signature)
+    ).to.be.revertedWith("Signature expired");
   });
 });
