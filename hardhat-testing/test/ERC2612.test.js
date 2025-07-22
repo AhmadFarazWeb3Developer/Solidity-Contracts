@@ -15,13 +15,10 @@ describe("Direct Spender Authorization", () => {
   }
 
   it("should let owner authorize spender via signature", async () => {
-    const { contract, owner, spender, attacker, accepter } = await loadFixture(
-      deploy
-    );
-
-    // EIP-712 Setup
+    const { contract, owner, spender, accepter } = await loadFixture(deploy);
     const chainId = (await ethers.provider.getNetwork()).chainId;
 
+    //  EIP 712 - Domain Separtor
     const domain = {
       name: "My Token",
       version: "1",
@@ -29,6 +26,7 @@ describe("Direct Spender Authorization", () => {
       verifyingContract: await contract.getAddress(),
     };
 
+    // EIP 712 - Action Type
     const types = {
       Permit: [
         { name: "owner", type: "address" },
@@ -39,15 +37,11 @@ describe("Direct Spender Authorization", () => {
       ],
     };
 
-    // Get nonce and set values
     const nonce = await contract.nonces(owner.address);
-    console.log(nonce);
-
-    const value = 10n * 10n ** 18n; // 10 tokens
-
+    const value = 10n * 10n ** 18n;
     const deadline = (await time.latest()) + 3600;
 
-    // Create permit message
+    // EIP 712 -  Message
     const message = {
       owner: owner.address,
       spender: spender.address,
@@ -56,31 +50,52 @@ describe("Direct Spender Authorization", () => {
       deadline,
     };
 
-    // Sign the permit message
     const signature = await owner.signTypedData(domain, types, message);
-
-    // Split signature correctly
     const { v, r, s } = ethers.Signature.from(signature);
 
-    // Call permit with correct parameters
-    await contract.connect(spender).permit(
-      owner.address, // owner
-      spender.address, // spender
-      value, // value
-      deadline, // deadline
-      v, // v (uint8)
-      r, // r (bytes32)
-      s // s (bytes32)
-    );
+    await contract
+      .connect(spender)
+      .permit(owner.address, spender.address, value, deadline, v, r, s);
 
     expect(await contract.allowance(owner.address, spender.address)).to.equal(
       value
     );
+    await contract
+      .connect(spender)
+      .transferFrom(owner.address, accepter.address, value);
 
-    await contract.connect(spender).transferFrom(owner, accepter, value);
+    const newValue = 5n * 10n ** 18n;
+    const newDeadline = (await time.latest()) + 3600;
+    const newNonce = await contract.nonces(owner.address);
 
-    // expect(await contract.allowance(owner.address, spender.address)).to.equal(
-    //   value
-    // );
+    const newMessage = {
+      owner: owner.address,
+      spender: accepter.address,
+      value: newValue,
+      nonce: newNonce,
+      deadline: newDeadline,
+    };
+
+    const newSignature = await owner.signTypedData(domain, types, newMessage);
+    const { v: newV, r: newR, s: newS } = ethers.Signature.from(newSignature);
+
+    await contract
+      .connect(accepter)
+      .permit(
+        owner.address,
+        accepter.address,
+        newValue,
+        newDeadline,
+        newV,
+        newR,
+        newS
+      );
+
+    expect(await contract.allowance(owner.address, accepter.address)).to.equal(
+      newValue
+    );
+    await contract
+      .connect(accepter)
+      .transferFrom(owner.address, spender.address, newValue);
   });
 });
