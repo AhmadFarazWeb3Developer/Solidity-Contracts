@@ -5,9 +5,17 @@ import {AccessControl} from "../../src/AccessControl/AccessControl.sol";
 
 contract AccessControlMock is AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("Minter_Role");
-    bytes32 public constant TEMPORARY_ROLE = keccak256("Temprory_Role");
 
     constructor(address _admin) {
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+    }
+
+    function calledByMinter()
+        public
+        view
+        onlyRole(MINTER_ROLE)
+        returns (string memory)
+    {
+        return "I am Minter";
     }
 }

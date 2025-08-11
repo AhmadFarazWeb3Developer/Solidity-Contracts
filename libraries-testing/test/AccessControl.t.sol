@@ -6,16 +6,13 @@ import {UtilsTest} from "./Utils.t.sol";
 
 contract AccessControlTest is UtilsTest {
     address minterAddress = makeAddr("minter");
-    address temporaryAddress = makeAddr("temporary");
 
     bytes32 minterRole;
-    bytes32 temporaryRole;
 
     function setUp() public override {
         UtilsTest.setUp();
 
         minterRole = accessControl.MINTER_ROLE();
-        temporaryRole = accessControl.TEMPORARY_ROLE();
     }
 
     modifier onlyOwnerPrank() {
@@ -48,5 +45,12 @@ contract AccessControlTest is UtilsTest {
 
         vm.startPrank(minterAddress);
         accessControl.renounceRole(minterRole, minterAddress);
+    }
+
+    function test_calledByMinter() public onlyOwnerPrank {
+        accessControl.grantRole(minterRole, minterAddress);
+
+        vm.startPrank(minterAddress);
+        accessControl.calledByMinter();
     }
 }
