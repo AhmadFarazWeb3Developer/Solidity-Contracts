@@ -19,10 +19,12 @@ contract OwnableTest is UtilsTest {
     }
 
     function testTransferOwnership() public onlyOwnerPrank {
-        address newOwner = makeAddr("newOwner");
         simpleOwnable.transferOwnership(newOwner);
     }
+
     function testRenounceOwnership() public onlyOwnerPrank {
         simpleOwnable.renounceOwnership();
+        vm.expectRevert();
+        simpleOwnable.transferOwnership(newOwner);
     }
 }
