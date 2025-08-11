@@ -25,7 +25,8 @@ contract Ownable2StepTest is UtilsTest {
 
     function test2Step_AcceptOwnership() public onlyOwnerPrank {
         twoStepOwnable.transferOwnership(newOwner);
-        assertEq(twoStepOwnable.pendingOwner(), newOwner);
+        assertEq(twoStepOwnable.pendingOwner(), newOwner); // newOwner is pending untill acceptance.
+        assertEq(twoStepOwnable.owner(), owner); // ownership is still not transfered, wait for accept ownership.
 
         vm.startPrank(newOwner);
         twoStepOwnable.acceptOwnership();
