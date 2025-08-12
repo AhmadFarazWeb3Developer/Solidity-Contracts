@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {AccessControl} from "../../src/AccessControl/AccessControl.sol";
-// import {AccessControlEnumerable} from "../../src/extensions/AccessControlEnumerable.sol";
+// import {AccessControl} from "../../src/AccessControl/AccessControl.sol";
+import {AccessControlEnumerable} from "../../src/extensions/AccessControlEnumerable.sol";
 
-contract AccessControlMock is AccessControl {
+contract AccessControlEnumerableMock is AccessControlEnumerable {
+    
     bytes32 public constant MINTER_ROLE = keccak256("Minter_Role");
 
     constructor(address _admin) {

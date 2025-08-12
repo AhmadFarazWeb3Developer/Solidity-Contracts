@@ -6,12 +6,17 @@ import {Ownable} from "../src/Ownable/Ownable.sol";
 import {Ownable2Step} from "../src/Ownable/Ownable2Step.sol";
 import {AccessControl} from "../src/AccessControl/AccessControl.sol";
 import {AccessControlMock} from "./mocks/AccessControlMock.sol";
+import {AccessControlEnumerableMock} from "./mocks/AccessControlEnumerableMock.sol";
+
+import {AccessControlDefaultAdminRulesMock} from "./mocks/AccessControlDefaultAdminRulesMock.sol";
 
 contract UtilsTest is Test {
     Ownable simpleOwnable;
     Ownable2Step twoStepOwnable;
 
     AccessControlMock accessControl;
+    AccessControlEnumerableMock accessControlEnumerable;
+    AccessControlDefaultAdminRulesMock accessControlDefaultAdminRules;
 
     address owner = makeAddr("owner");
     address newOwner = makeAddr("newOwner");
@@ -20,5 +25,11 @@ contract UtilsTest is Test {
         simpleOwnable = new Ownable(owner);
         twoStepOwnable = new Ownable2Step(owner);
         accessControl = new AccessControlMock(owner);
+        accessControlEnumerable = new AccessControlEnumerableMock(owner);
+
+        accessControlDefaultAdminRules = new AccessControlDefaultAdminRulesMock(
+            1 days,
+            owner
+        );
     }
 }
