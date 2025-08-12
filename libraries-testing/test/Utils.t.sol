@@ -10,6 +10,8 @@ import {AccessControlEnumerableMock} from "./mocks/AccessControlEnumerableMock.s
 
 import {AccessControlDefaultAdminRulesMock} from "./mocks/AccessControlDefaultAdminRulesMock.sol";
 
+import {AccessManagerMock} from "./mocks/AccessManagerMock.sol";
+
 contract UtilsTest is Test {
     Ownable simpleOwnable;
     Ownable2Step twoStepOwnable;
@@ -17,6 +19,8 @@ contract UtilsTest is Test {
     AccessControlMock accessControl;
     AccessControlEnumerableMock accessControlEnumerable;
     AccessControlDefaultAdminRulesMock accessControlDefaultAdminRules;
+
+    AccessManagerMock accessManager;
 
     address owner = makeAddr("owner");
     address newOwner = makeAddr("newOwner");
@@ -31,5 +35,7 @@ contract UtilsTest is Test {
             1 days,
             owner
         );
+
+        accessManager = new AccessManagerMock(owner);
     }
 }
