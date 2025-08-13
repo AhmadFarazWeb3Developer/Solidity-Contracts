@@ -14,6 +14,7 @@ import {TransparentUpgradeableProxy} from "../src/TransparentProxy/TransparentUp
 import {ProxyAdmin} from "../src/TransparentProxy/ProxyAdmin.sol";
 
 import {LogicMock} from "./mocks/LogicMock.sol";
+import {UUPSLogicMock} from "./mocks/UUPSLogicMock.sol";
 
 contract UtilsTest is Test {
     Implementation1 implementation1;
@@ -26,6 +27,7 @@ contract UtilsTest is Test {
     ProxyAdmin proxyAdmin;
 
     LogicMock logicContract;
+    UUPSLogicMock uupsLogicMock;
 
     address admin = makeAddr("admin");
 
@@ -51,6 +53,6 @@ contract UtilsTest is Test {
             initializer
         );
 
-        // erc1967Proxy = new ERC1967Proxy(randomAddress, "");
+        uupsLogicMock = new UUPSLogicMock();
     }
 }
