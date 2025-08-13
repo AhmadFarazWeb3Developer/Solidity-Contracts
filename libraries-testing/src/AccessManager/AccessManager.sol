@@ -257,6 +257,7 @@ contract AccessManager is Context, Multicall, IAccessManager {
         if (roleId == ADMIN_ROLE || roleId == PUBLIC_ROLE) {
             revert AccessManagerLockedRole(roleId);
         }
+        
         emit RoleLabel(roleId, label);
     }
 

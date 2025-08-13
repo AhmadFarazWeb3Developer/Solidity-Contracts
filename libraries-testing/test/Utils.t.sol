@@ -11,6 +11,8 @@ import {AccessControlEnumerableMock} from "./mocks/AccessControlEnumerableMock.s
 import {AccessControlDefaultAdminRulesMock} from "./mocks/AccessControlDefaultAdminRulesMock.sol";
 
 import {AccessManagerMock} from "./mocks/AccessManagerMock.sol";
+import {AccessManagedMock} from "./mocks/AccessManagedMock.sol";
+import {AuthorityMock} from "./mocks/AuthorityMock.sol";
 
 contract UtilsTest is Test {
     Ownable simpleOwnable;
@@ -21,6 +23,9 @@ contract UtilsTest is Test {
     AccessControlDefaultAdminRulesMock accessControlDefaultAdminRules;
 
     AccessManagerMock accessManager;
+    AccessManagedMock accessManaged;
+
+    AuthorityMock newAuthority;
 
     address owner = makeAddr("owner");
     address newOwner = makeAddr("newOwner");
@@ -37,5 +42,9 @@ contract UtilsTest is Test {
         );
 
         accessManager = new AccessManagerMock(owner);
+
+        accessManaged = new AccessManagedMock(owner);
+        
+        newAuthority = new AuthorityMock();
     }
 }
