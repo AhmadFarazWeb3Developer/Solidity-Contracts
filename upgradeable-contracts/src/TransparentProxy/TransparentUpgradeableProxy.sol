@@ -3,25 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "./ERC1967Proxy.sol";
-
-/**
- * @dev Interface for {TransparentUpgradeableProxy}. In order to implement transparency, {TransparentUpgradeableProxy}
- * does not implement this interface directly, and some of its functions are implemented by an internal dispatch
- * mechanism. The compiler is unaware that these functions are implemented by {TransparentUpgradeableProxy} and will not
- * include them in the ABI so this interface must be used to interact with it.
- */
-interface ITransparentUpgradeableProxy is IERC1967 {
-    function admin() external view returns (address);
-
-    function implementation() external view returns (address);
-
-    function changeAdmin(address) external;
-
-    function upgradeTo(address) external;
-
-    function upgradeToAndCall(address, bytes memory) external payable;
-}
+import "./interfaces/ITransparentUpgradeableProxy.sol";
 
 /**
  * @dev This contract implements a proxy that is upgradeable by an admin.
@@ -60,7 +42,11 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * @dev Initializes an upgradeable proxy managed by `_admin`, backed by the implementation at `_logic`, and
      * optionally initialized with `_data` as explained in {ERC1967Proxy-constructor}.
      */
-    constructor(address _logic, address admin_, bytes memory _data) payable ERC1967Proxy(_logic, _data) {
+    constructor(
+        address _logic,
+        address admin_,
+        bytes memory _data
+    ) payable ERC1967Proxy(_logic, _data) {
         _changeAdmin(admin_);
     }
 
@@ -87,16 +73,27 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
             bytes4 selector = msg.sig;
             if (selector == ITransparentUpgradeableProxy.upgradeTo.selector) {
                 ret = _dispatchUpgradeTo();
-            } else if (selector == ITransparentUpgradeableProxy.upgradeToAndCall.selector) {
+            } else if (
+                selector ==
+                ITransparentUpgradeableProxy.upgradeToAndCall.selector
+            ) {
                 ret = _dispatchUpgradeToAndCall();
-            } else if (selector == ITransparentUpgradeableProxy.changeAdmin.selector) {
+            } else if (
+                selector == ITransparentUpgradeableProxy.changeAdmin.selector
+            ) {
                 ret = _dispatchChangeAdmin();
-            } else if (selector == ITransparentUpgradeableProxy.admin.selector) {
+            } else if (
+                selector == ITransparentUpgradeableProxy.admin.selector
+            ) {
                 ret = _dispatchAdmin();
-            } else if (selector == ITransparentUpgradeableProxy.implementation.selector) {
+            } else if (
+                selector == ITransparentUpgradeableProxy.implementation.selector
+            ) {
                 ret = _dispatchImplementation();
             } else {
-                revert("TransparentUpgradeableProxy: admin cannot fallback to proxy target");
+                revert(
+                    "TransparentUpgradeableProxy: admin cannot fallback to proxy target"
+                );
             }
             assembly {
                 return(add(ret, 0x20), mload(ret))
@@ -166,7 +163,10 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
      * proxied contract.
      */
     function _dispatchUpgradeToAndCall() private returns (bytes memory) {
-        (address newImplementation, bytes memory data) = abi.decode(msg.data[4:], (address, bytes));
+        (address newImplementation, bytes memory data) = abi.decode(
+            msg.data[4:],
+            (address, bytes)
+        );
         _upgradeToAndCall(newImplementation, data, true);
 
         return "";
