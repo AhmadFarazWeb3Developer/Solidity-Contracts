@@ -27,6 +27,7 @@ contract UtilsTest is Test {
     ProxyAdmin proxyAdmin;
 
     LogicMock logicContract;
+
     UUPSLogicMock uupsLogicMock;
 
     address admin = makeAddr("admin");
@@ -54,5 +55,15 @@ contract UtilsTest is Test {
         );
 
         uupsLogicMock = new UUPSLogicMock();
+
+        erc1967Proxy = new ERC1967Proxy(
+            address(uupsLogicMock),
+            abi.encodeWithSelector(
+                uupsLogicMock.initialize.selector,
+                1000,
+                "UUPS is pattern not proxy",
+                admin
+            )
+        );
     }
 }
