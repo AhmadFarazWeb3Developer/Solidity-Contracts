@@ -14,7 +14,8 @@ import {TransparentUpgradeableProxy} from "../src/TransparentProxy/TransparentUp
 import {ProxyAdmin} from "../src/TransparentProxy/ProxyAdmin.sol";
 
 import {LogicMock} from "./mocks/LogicMock.sol";
-import {UUPSLogicMock} from "./mocks/UUPSLogicMock.sol";
+import {UUPS_V1} from "./mocks/UUPSMocks/UUPS_V1.sol";
+import {UUPS_V2} from "./mocks/UUPSMocks/UUPS_V2.sol";
 
 contract UtilsTest is Test {
     Implementation1 implementation1;
@@ -28,7 +29,8 @@ contract UtilsTest is Test {
 
     LogicMock logicContract;
 
-    UUPSLogicMock uupsLogicMock;
+    UUPS_V1 uupsV1;
+    UUPS_V2 uupsV2;
 
     address admin = makeAddr("admin");
 
@@ -54,16 +56,20 @@ contract UtilsTest is Test {
             initializer
         );
 
-        uupsLogicMock = new UUPSLogicMock();
+        // UUPS -------------------------------------
+
+        uupsV1 = new UUPS_V1();
 
         erc1967Proxy = new ERC1967Proxy(
-            address(uupsLogicMock),
+            address(uupsV1),
             abi.encodeWithSelector(
-                uupsLogicMock.initialize.selector,
+                uupsV1.initialize.selector,
                 1000,
                 "UUPS is pattern not proxy",
                 admin
             )
         );
+
+        uupsV2 = new UUPS_V2();
     }
 }
