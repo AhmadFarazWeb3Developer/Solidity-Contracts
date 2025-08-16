@@ -22,7 +22,7 @@ contract UUPS_V2 is Initializable, UUPSUpgradeable, OwnableUpgradeable {
         address newImplementation
     ) internal override onlyOwner {}
 
-    function setValue(uint256 _balance) external onlyOwner {
+    function setBalance(uint256 _balance) external onlyOwner {
         balances[msg.sender] = _balance;
     }
 

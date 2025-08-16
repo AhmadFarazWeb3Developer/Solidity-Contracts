@@ -17,21 +17,30 @@ contract UUPSUpgradeableTest is UtilsTest {
     }
 
     function testProxy() public onlyAdmin {
-        UUPS_V1 proxyCastV1 = UUPS_V1(address(erc1967Proxy));
+        UUPS_V1 proxyCast = UUPS_V1(address(erc1967Proxy));
 
-        bytes32 implSlot = bytes32(
-            uint256(keccak256("eip1967.proxy.implementation")) - 1
-        );
-        bytes32 implAddrBytes = vm.load(address(erc1967Proxy), implSlot);
+        address implAddr = _getImplementation();
+        assertEq(implAddr, address(uupsV1));
 
-        address implAddr = address(uint160(uint256(implAddrBytes)));
-        console2.log("Implementation address:", implAddr);
-
-        proxyCastV1.upgradeToAndCall(
+        proxyCast.upgradeToAndCall(
             address(uupsV2),
             abi.encodeWithSelector(uupsV2.initialize.selector, admin)
         );
+        implAddr = _getImplementation();
 
-        console2.log("Implementation address:", implAddr);
+        assertEq(implAddr, address(uupsV2));
+
+        // UUPS_V1 proxyCast = UUPS_V1(address(erc1967Proxy));
+        proxyCast.setValue(1000);
+    }
+
+    function _getImplementation() internal view returns (address) {
+        // ERC1967 implementation slot
+        bytes32 slot = bytes32(
+            uint256(keccak256("eip1967.proxy.implementation")) - 1
+        );
+
+        bytes32 implBytes = vm.load(address(erc1967Proxy), slot);
+        return address(uint160(uint256(implBytes)));
     }
 }
