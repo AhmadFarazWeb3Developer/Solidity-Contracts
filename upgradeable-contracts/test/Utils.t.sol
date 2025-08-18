@@ -46,10 +46,12 @@ contract UtilsTest is Test {
         vm.startPrank(admin);
         proxyAdmin = new ProxyAdmin();
         vm.stopPrank();
+
         bytes memory initializer = abi.encodeWithSignature(
             "Initializer(uint256)",
             1000
         );
+        
         transparentProxy = new TransparentUpgradeableProxy(
             address(logicContract),
             address(proxyAdmin),
