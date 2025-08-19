@@ -27,7 +27,7 @@ abstract contract UtilsTest is Test {
             safeSalt
         );
 
-        singleton = Safe(singletonAddress);
+        singleton = Safe(payable(singletonAddress));
 
         // 3. Proxy factory
         bytes memory factoryInitCode = type(SafeProxyFactory).creationCode;
@@ -59,17 +59,12 @@ abstract contract UtilsTest is Test {
             "setup(address[],uint256,address,bytes,address,address,uint256,address)",
             owners,
             threshold,
-            address(fallbackHandler),
-            bytes(""),
-            address(0),
-            address(0),
-            0,
-            address(0)
-        );
-
-        // Generate salt from initializer and nonce
-        bytes32 salt = keccak256(
-            abi.encodePacked(keccak256(initializer), saltNonce)
+            address(0), // to
+            bytes(""), // data
+            address(fallbackHandler), // fallback handler
+            address(0), // paymentToken
+            0, // payment
+            address(0) // paymentReceiver
         );
 
         // Use the public createProxyWithNonce function
