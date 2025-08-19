@@ -9,10 +9,6 @@ import {SafeProxy} from "../src/proxies/SafeProxy.sol";
 import {CompatibilityFallbackHandler} from "../src/handler/extensible/CompatibilityFallbackHandler.sol";
 
 abstract contract UtilsTest is Test {
-    // address[] public owners;
-    // uint256 public threshold = 1;
-    // uint256 public saltNonce = 12345;
-
     SingletonFactory public singletonFactory;
     SafeProxyFactory public proxyFactory;
     Safe public singleton;
@@ -35,6 +31,7 @@ abstract contract UtilsTest is Test {
 
         // 3. Deploy ProxyFactory
         bytes memory factoryInitCode = type(SafeProxyFactory).creationCode;
+
         bytes32 factorySalt = keccak256("GnosisSafeProxyFactoryDeployment");
         address factoryAddress = singletonFactory.deploy(
             factoryInitCode,
