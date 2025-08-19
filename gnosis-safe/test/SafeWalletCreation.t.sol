@@ -9,6 +9,7 @@ import {SafeProxy} from "../src/proxies/SafeProxy.sol";
 import {IProxy} from "../src/proxies/SafeProxy.sol";
 
 import {SimpleGuard} from "./guard/SimpleGuard.sol";
+import {Enum} from "../src/libraries/Enum.sol";
 
 contract SafeWalletCreationTest is UtilsTest {
     address[] public owners;
@@ -83,6 +84,62 @@ contract SafeWalletCreationTest is UtilsTest {
         safe.setGuard(address(guard));
 
         vm.stopPrank();
+    }
+
+    function test_execTransaction() public {
+        address safeAddress = createSafe(owners, threshold, saltNonce);
+        Safe safe = Safe(payable(safeAddress));
+        vm.deal(address(safe), 1 ether);
+
+        address recipient = makeAddr("recipient");
+        uint256 sendAmount = 0.1 ether;
+
+        bytes32 txHash = safe.getTransactionHash(
+            recipient,
+            sendAmount,
+            "",
+            Enum.Operation.Call,
+            100000,
+            0,
+            0,
+            address(0),
+            payable(address(0)),
+            safe.nonce()
+        );
+
+        bytes memory signatures = buildSignatures(txHash);
+
+        uint256 balanceBefore = recipient.balance;
+
+        bool success = safe.execTransaction(
+            recipient,
+            sendAmount,
+            "",
+            Enum.Operation.Call,
+            100000,
+            0,
+            0,
+            address(0),
+            payable(address(0)),
+            signatures
+        );
+
+        require(success, "Transaction execution failed");
+        assertEq(recipient.balance, balanceBefore + sendAmount);
+    }
+
+    function buildSignatures(bytes32 txHash) internal returns (bytes memory) {
+        bytes memory sigs;
+
+        // Owner 1
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, txHash);
+        sigs = abi.encodePacked(sigs, r1, s1, v1);
+
+        // Owner 2
+        (uint8 v2, bytes32 r2, bytes32 s2) = vm.sign(2, txHash);
+        sigs = abi.encodePacked(sigs, r2, s2, v2);
+
+        return sigs;
     }
 }
 
