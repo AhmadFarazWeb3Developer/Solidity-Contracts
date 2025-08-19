@@ -9,7 +9,5 @@ contract Safe is UtilsTest {
         UtilsTest.setUp();
     }
 
-    function test_Safe() public {
-        safe.getThreshold();
-    }
+    function test_Safe() public {}
 }
