@@ -13,24 +13,18 @@ import {TokenCallbackHandler} from "./TokenCallbackHandler.sol";
  *      Using it in other ways may cause undefined behavior. ⚠️⚠️⚠️
  * @author Richard Meissner - @rmeissner
  */
-
-contract CompatibilityFallbackHandler is
-    TokenCallbackHandler,
-    ISignatureValidator
-{
+contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidator {
     /**
      * @dev The precomputed EIP-712 type hash for the Safe message type.
      *      Precomputed value of: `keccak256("SafeMessage(bytes message)")`.
      */
-    bytes32 private constant SAFE_MSG_TYPEHASH =
-        0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca;
+    bytes32 private constant SAFE_MSG_TYPEHASH = 0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca;
 
     /**
      * @dev The precomputed EIP-712 type hash for the Safe transaction type.
      *      Precomputed value of: `keccak256("SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)")`.
      */
-    bytes32 private constant SAFE_TX_TYPEHASH =
-        0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8;
+    bytes32 private constant SAFE_TX_TYPEHASH = 0xbb8310d486368db6bd6f849402fdd73ad53d316b5a4b2644ad6efe0f941286d8;
 
     /**
      * @dev The sentinel module value in the {ModuleManager.modules} linked list.
@@ -44,9 +38,7 @@ contract CompatibilityFallbackHandler is
      * @param message Raw message bytes.
      * @return Message hash.
      */
-    function getMessageHash(
-        bytes memory message
-    ) public view returns (bytes32) {
+    function getMessageHash(bytes memory message) public view returns (bytes32) {
         return getMessageHashForSafe(ISafe(payable(msg.sender)), message);
     }
 
@@ -56,20 +48,9 @@ contract CompatibilityFallbackHandler is
      * @param message Message that should be encoded.
      * @return Encoded message.
      */
-    function encodeMessageDataForSafe(
-        ISafe safe,
-        bytes memory message
-    ) public view returns (bytes memory) {
-        bytes32 safeMessageHash = keccak256(
-            abi.encode(SAFE_MSG_TYPEHASH, keccak256(message))
-        );
-        return
-            abi.encodePacked(
-                bytes1(0x19),
-                bytes1(0x01),
-                safe.domainSeparator(),
-                safeMessageHash
-            );
+    function encodeMessageDataForSafe(ISafe safe, bytes memory message) public view returns (bytes memory) {
+        bytes32 safeMessageHash = keccak256(abi.encode(SAFE_MSG_TYPEHASH, keccak256(message)));
+        return abi.encodePacked(bytes1(0x19), bytes1(0x01), safe.domainSeparator(), safeMessageHash);
     }
 
     /**
@@ -78,10 +59,7 @@ contract CompatibilityFallbackHandler is
      * @param message Message that should be hashed.
      * @return Message hash.
      */
-    function getMessageHashForSafe(
-        ISafe safe,
-        bytes memory message
-    ) public view returns (bytes32) {
+    function getMessageHashForSafe(ISafe safe, bytes memory message) public view returns (bytes32) {
         return keccak256(encodeMessageDataForSafe(safe, message));
     }
 
@@ -92,16 +70,10 @@ contract CompatibilityFallbackHandler is
      * @param _signature Signature data.
      * @return The EIP-1271 magic value if the signature is valid, reverts otherwise.
      */
-    function isValidSignature(
-        bytes32 _dataHash,
-        bytes calldata _signature
-    ) public view override returns (bytes4) {
+    function isValidSignature(bytes32 _dataHash, bytes calldata _signature) public view override returns (bytes4) {
         // Caller should be a Safe.
         ISafe safe = ISafe(payable(msg.sender));
-        bytes memory messageData = encodeMessageDataForSafe(
-            safe,
-            abi.encode(_dataHash)
-        );
+        bytes memory messageData = encodeMessageDataForSafe(safe, abi.encode(_dataHash));
         bytes32 messageHash = keccak256(messageData);
         if (_signature.length == 0) {
             require(safe.signedMessages(messageHash) != 0, "Hash not approved");
@@ -120,10 +92,7 @@ contract CompatibilityFallbackHandler is
     function getModules() external view returns (address[] memory) {
         // Caller should be a Safe.
         ISafe safe = ISafe(payable(msg.sender));
-        (address[] memory array, ) = safe.getModulesPaginated(
-            SENTINEL_MODULES,
-            10
-        );
+        (address[] memory array,) = safe.getModulesPaginated(SENTINEL_MODULES, 10);
         return array;
     }
 
@@ -137,10 +106,10 @@ contract CompatibilityFallbackHandler is
      * @param targetContract Address of the contract containing the code to execute.
      * @param calldataPayload Calldata that should be sent to the target contract (encoded method name and arguments).
      */
-    function simulate(
-        address targetContract,
-        bytes calldata calldataPayload
-    ) external returns (bytes memory response) {
+    function simulate(address targetContract, bytes calldata calldataPayload)
+        external
+        returns (bytes memory response)
+    {
         // Suppress compiler warnings about not using parameters, while allowing
         // parameters to keep names for documentation purposes. This does not
         // generate code.
@@ -162,23 +131,24 @@ contract CompatibilityFallbackHandler is
             // `abi.encodeWithSelector` builtin.
             calldatacopy(add(ptr, 0x04), 0x04, sub(calldatasize(), 0x04))
 
-            let success := call(
-                gas(),
-                // `address()` has been changed to `caller()` to use the
-                // implementation of the calling Safe.
-                caller(),
-                0,
-                ptr,
-                calldatasize(),
-                // The `simulateAndRevert` call should always reverts, and
-                // instead encodes whether or not it was successful in the
-                // return data. The first 32-byte word of the return data
-                // contains the `success` value, and the second 32-byte word
-                // contains the response bytes length, so write them to memory
-                // address 0x00 (Solidity scratch which is OK to use).
-                0x00,
-                0x40
-            )
+            let success :=
+                call(
+                    gas(),
+                    // `address()` has been changed to `caller()` to use the
+                    // implementation of the calling Safe.
+                    caller(),
+                    0,
+                    ptr,
+                    calldatasize(),
+                    // The `simulateAndRevert` call should always reverts, and
+                    // instead encodes whether or not it was successful in the
+                    // return data. The first 32-byte word of the return data
+                    // contains the `success` value, and the second 32-byte word
+                    // contains the response bytes length, so write them to memory
+                    // address 0x00 (Solidity scratch which is OK to use).
+                    0x00,
+                    0x40
+                )
 
             // Double check that the call reverted as expected, and that the
             // `returndata` is long enough to hold the encoded success boolean
@@ -186,9 +156,7 @@ contract CompatibilityFallbackHandler is
             // the case if the caller is a Safe, but check anyway to make sure
             // this function does not make unexpected state changes when
             // called by other contracts.
-            if or(success, lt(returndatasize(), 0x40)) {
-                revert(0, 0)
-            }
+            if or(success, lt(returndatasize(), 0x40)) { revert(0, 0) }
 
             // Allocate and copy the response bytes, making sure to increment
             // the free memory pointer accordingly (in case this method is
@@ -205,9 +173,7 @@ contract CompatibilityFallbackHandler is
             mstore(0x40, add(response, responseEncodedSize))
             returndatacopy(response, 0x20, responseEncodedSize)
 
-            if iszero(mload(0x00)) {
-                revert(add(response, 0x20), responseEncodedSize)
-            }
+            if iszero(mload(0x00)) { revert(add(response, 0x20), responseEncodedSize) }
         }
         /* solhint-enable no-inline-assembly */
     }
@@ -258,12 +224,6 @@ contract CompatibilityFallbackHandler is
                 nonce
             )
         );
-        return
-            abi.encodePacked(
-                bytes1(0x19),
-                bytes1(0x01),
-                domainSeparator,
-                safeTxHash
-            );
+        return abi.encodePacked(bytes1(0x19), bytes1(0x01), domainSeparator, safeTxHash);
     }
 }

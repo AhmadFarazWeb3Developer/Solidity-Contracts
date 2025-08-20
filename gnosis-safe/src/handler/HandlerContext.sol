@@ -31,10 +31,7 @@ abstract contract HandlerContext {
      *      effort** check and may generate false positives under certain conditions.
      */
     function _requireFallback() internal view {
-        bytes memory storageData = ISafe(payable(msg.sender)).getStorageAt(
-            uint256(FALLBACK_HANDLER_STORAGE_SLOT),
-            1
-        );
+        bytes memory storageData = ISafe(payable(msg.sender)).getStorageAt(uint256(FALLBACK_HANDLER_STORAGE_SLOT), 1);
         address fallbackHandler = abi.decode(storageData, (address));
         require(fallbackHandler == address(this), "not a fallback call");
     }

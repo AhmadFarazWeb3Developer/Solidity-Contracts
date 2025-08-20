@@ -16,9 +16,7 @@ library SafeMath {
         // Gas optimization: this is cheaper than requiring 'a' not to be zero,
         // but the benefit is lost if 'b' is also tested.
         // See: <https://github.com/OpenZeppelin/openzeppelin-solidity/pull/522>
-        if (a == 0) {
-            return 0;
-        }
+        if (a == 0) return 0;
 
         uint256 c = a * b;
         require(c / a == b);

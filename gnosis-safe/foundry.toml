@@ -5,3 +5,8 @@ libs = ["lib"]
 use_svm = true
 auto_detect_solc = false # Disable auto-detection to enforce explicit versions
 solc_version = "0.8.13"  # Default for most files
+
+
+[fmt]
+single_line_statement_blocks = "single"
+sort_imports = true

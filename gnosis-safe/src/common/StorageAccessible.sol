@@ -14,10 +14,7 @@ abstract contract StorageAccessible is IStorageAccessible {
     /**
      * @inheritdoc IStorageAccessible
      */
-    function getStorageAt(
-        uint256 offset,
-        uint256 length
-    ) public view override returns (bytes memory) {
+    function getStorageAt(uint256 offset, uint256 length) public view override returns (bytes memory) {
         // We use `<< 5` instead of the equivalent `* 32` as `SHL` opcode only uses 3 gas, while the `MUL` opcode uses 5 gas.
         bytes memory result = new bytes(length << 5);
         for (uint256 index = 0; index < length; ++index) {
@@ -35,21 +32,11 @@ abstract contract StorageAccessible is IStorageAccessible {
     /**
      * @inheritdoc IStorageAccessible
      */
-    function simulateAndRevert(
-        address targetContract,
-        bytes memory calldataPayload
-    ) external override {
+    function simulateAndRevert(address targetContract, bytes memory calldataPayload) external override {
         /* solhint-disable no-inline-assembly */
         /// @solidity memory-safe-assembly
         assembly {
-            let success := delegatecall(
-                gas(),
-                targetContract,
-                add(calldataPayload, 0x20),
-                mload(calldataPayload),
-                0,
-                0
-            )
+            let success := delegatecall(gas(), targetContract, add(calldataPayload, 0x20), mload(calldataPayload), 0, 0)
             // Load free memory location.
             let ptr := mload(0x40)
             mstore(ptr, success)

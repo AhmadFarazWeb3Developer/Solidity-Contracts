@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
 import {Safe} from "../src/Safe.sol";
 import {SingletonFactory} from "../src/SingletonFactory.sol";
-import {SafeProxyFactory} from "../src/proxies/SafeProxyFactory.sol";
-import {SafeProxy} from "../src/proxies/SafeProxy.sol";
+
 import {CompatibilityFallbackHandler} from "../src/handler/extensible/CompatibilityFallbackHandler.sol";
+import {SafeProxy} from "../src/proxies/SafeProxy.sol";
+import {SafeProxyFactory} from "../src/proxies/SafeProxyFactory.sol";
+import {Test, console} from "forge-std/Test.sol";
 
 abstract contract UtilsTest is Test {
     SingletonFactory public singletonFactory;
@@ -23,38 +24,24 @@ abstract contract UtilsTest is Test {
         // 2. Deploy Safe singleton
         bytes memory safeInitCode = type(Safe).creationCode;
         bytes32 safeSalt = keccak256("GnosisSafeDeployment");
-        address singletonAddress = singletonFactory.deploy(
-            safeInitCode,
-            safeSalt
-        );
+        address singletonAddress = singletonFactory.deploy(safeInitCode, safeSalt);
         singleton = Safe(payable(singletonAddress));
 
         // 3. Deploy ProxyFactory
         bytes memory factoryInitCode = type(SafeProxyFactory).creationCode;
 
         bytes32 factorySalt = keccak256("GnosisSafeProxyFactoryDeployment");
-        address factoryAddress = singletonFactory.deploy(
-            factoryInitCode,
-            factorySalt
-        );
+        address factoryAddress = singletonFactory.deploy(factoryInitCode, factorySalt);
         proxyFactory = SafeProxyFactory(factoryAddress);
 
         // 4. Deploy FallbackHandler
-        bytes memory handlerInitCode = type(CompatibilityFallbackHandler)
-            .creationCode;
+        bytes memory handlerInitCode = type(CompatibilityFallbackHandler).creationCode;
         bytes32 handlerSalt = keccak256("GnosisSafeFallbackHandlerDeployment");
-        address handlerAddress = singletonFactory.deploy(
-            handlerInitCode,
-            handlerSalt
-        );
+        address handlerAddress = singletonFactory.deploy(handlerInitCode, handlerSalt);
         fallbackHandler = CompatibilityFallbackHandler(handlerAddress);
     }
 
-    function createSafe(
-        address[] memory owners,
-        uint256 threshold,
-        uint256 saltNonce
-    ) public returns (address) {
+    function createSafe(address[] memory owners, uint256 threshold, uint256 saltNonce) public returns (address) {
         vm.deal(address(this), 100 ether);
         // vm.prank(vm.addr(1));
 
@@ -70,11 +57,7 @@ abstract contract UtilsTest is Test {
             address(0) // paymentReceiver
         );
 
-        SafeProxy proxy = proxyFactory.createProxyWithNonce(
-            address(singleton),
-            initializer,
-            saltNonce
-        );
+        SafeProxy proxy = proxyFactory.createProxyWithNonce(address(singleton), initializer, saltNonce);
 
         vm.deal(address(proxy), 1 ether);
         return address(proxy);

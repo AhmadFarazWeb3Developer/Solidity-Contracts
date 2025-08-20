@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 /* solhint-disable one-contract-per-file */
 pragma solidity >=0.7.0 <0.9.0;
+
 import {SelfAuthorized} from "./../common/SelfAuthorized.sol";
 import {IERC165} from "./../interfaces/IERC165.sol";
 import {IModuleManager} from "./../interfaces/IModuleManager.sol";
@@ -47,12 +48,9 @@ abstract contract BaseModuleGuard is IModuleGuard {
     /**
      * @inheritdoc IERC165
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external view virtual override returns (bool) {
-        return
-            interfaceId == type(IModuleGuard).interfaceId || // 0x58401ed8
-            interfaceId == type(IERC165).interfaceId; // 0x01ffc9a7
+    function supportsInterface(bytes4 interfaceId) external view virtual override returns (bool) {
+        return interfaceId == type(IModuleGuard).interfaceId // 0x58401ed8
+            || interfaceId == type(IERC165).interfaceId; // 0x01ffc9a7
     }
 }
 
@@ -93,15 +91,7 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
         if (to != address(0)) {
             if (!isContract(to)) revertWithError("GS002");
             // Setup has to complete successfully or the transaction fails.
-            if (
-                !execute(
-                    to,
-                    0,
-                    data,
-                    Enum.Operation.DelegateCall,
-                    type(uint256).max
-                )
-            ) revertWithError("GS000");
+            if (!execute(to, 0, data, Enum.Operation.DelegateCall, type(uint256).max)) revertWithError("GS000");
         }
     }
 
@@ -114,27 +104,18 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
      * @return guard Guard to be used for checking.
      * @return guardHash Hash returned from the guard tx check.
      */
-    function preModuleExecution(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Enum.Operation operation
-    ) internal returns (address guard, bytes32 guardHash) {
+    function preModuleExecution(address to, uint256 value, bytes memory data, Enum.Operation operation)
+        internal
+        returns (address guard, bytes32 guardHash)
+    {
         onBeforeExecTransactionFromModule(to, value, data, operation);
         guard = getModuleGuard();
 
         // Only allow-listed modules are allowed.
-        if (msg.sender == SENTINEL_MODULES || modules[msg.sender] == address(0))
-            revertWithError("GS104");
+        if (msg.sender == SENTINEL_MODULES || modules[msg.sender] == address(0)) revertWithError("GS104");
 
         if (guard != address(0)) {
-            guardHash = IModuleGuard(guard).checkModuleTransaction(
-                to,
-                value,
-                data,
-                operation,
-                msg.sender
-            );
+            guardHash = IModuleGuard(guard).checkModuleTransaction(to, value, data, operation, msg.sender);
         }
     }
 
@@ -145,14 +126,8 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
      * @param guardHash Hash returned from the guard during pre execution check.
      * @param success Boolean flag indicating if the call succeeded.
      */
-    function postModuleExecution(
-        address guard,
-        bytes32 guardHash,
-        bool success
-    ) internal {
-        if (guard != address(0)) {
-            IModuleGuard(guard).checkAfterModuleExecution(guardHash, success);
-        }
+    function postModuleExecution(address guard, bytes32 guardHash, bool success) internal {
+        if (guard != address(0)) IModuleGuard(guard).checkAfterModuleExecution(guardHash, success);
         if (success) emit ExecutionFromModuleSuccess(msg.sender);
         else emit ExecutionFromModuleFailure(msg.sender);
     }
@@ -162,8 +137,7 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
      */
     function enableModule(address module) public override authorized {
         // Module address cannot be null or sentinel.
-        if (module == address(0) || module == SENTINEL_MODULES)
-            revertWithError("GS101");
+        if (module == address(0) || module == SENTINEL_MODULES) revertWithError("GS101");
         // Module cannot be added twice.
         if (modules[module] != address(0)) revertWithError("GS102");
         modules[module] = modules[SENTINEL_MODULES];
@@ -174,13 +148,9 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
     /**
      * @inheritdoc IModuleManager
      */
-    function disableModule(
-        address prevModule,
-        address module
-    ) public override authorized {
+    function disableModule(address prevModule, address module) public override authorized {
         // Validate module address and check that it corresponds to a module index.
-        if (module == address(0) || module == SENTINEL_MODULES)
-            revertWithError("GS101");
+        if (module == address(0) || module == SENTINEL_MODULES) revertWithError("GS101");
         if (modules[prevModule] != module) revertWithError("GS103");
         modules[prevModule] = modules[module];
         modules[module] = address(0);
@@ -190,18 +160,12 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
     /**
      * @inheritdoc IModuleManager
      */
-    function execTransactionFromModule(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Enum.Operation operation
-    ) external override returns (bool success) {
-        (address guard, bytes32 guardHash) = preModuleExecution(
-            to,
-            value,
-            data,
-            operation
-        );
+    function execTransactionFromModule(address to, uint256 value, bytes memory data, Enum.Operation operation)
+        external
+        override
+        returns (bool success)
+    {
+        (address guard, bytes32 guardHash) = preModuleExecution(to, value, data, operation);
         success = execute(to, value, data, operation, type(uint256).max);
         postModuleExecution(guard, guardHash, success);
     }
@@ -209,18 +173,12 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
     /**
      * @inheritdoc IModuleManager
      */
-    function execTransactionFromModuleReturnData(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Enum.Operation operation
-    ) external override returns (bool success, bytes memory returnData) {
-        (address guard, bytes32 guardHash) = preModuleExecution(
-            to,
-            value,
-            data,
-            operation
-        );
+    function execTransactionFromModuleReturnData(address to, uint256 value, bytes memory data, Enum.Operation operation)
+        external
+        override
+        returns (bool success, bytes memory returnData)
+    {
+        (address guard, bytes32 guardHash) = preModuleExecution(to, value, data, operation);
         success = execute(to, value, data, operation, type(uint256).max);
         /* solhint-disable no-inline-assembly */
         /// @solidity memory-safe-assembly
@@ -243,21 +201,20 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
     /**
      * @inheritdoc IModuleManager
      */
-    function isModuleEnabled(
-        address module
-    ) public view override returns (bool) {
+    function isModuleEnabled(address module) public view override returns (bool) {
         return SENTINEL_MODULES != module && modules[module] != address(0);
     }
 
     /**
      * @inheritdoc IModuleManager
      */
-    function getModulesPaginated(
-        address start,
-        uint256 pageSize
-    ) external view override returns (address[] memory array, address next) {
-        if (start != SENTINEL_MODULES && !isModuleEnabled(start))
-            revertWithError("GS105");
+    function getModulesPaginated(address start, uint256 pageSize)
+        external
+        view
+        override
+        returns (address[] memory array, address next)
+    {
+        if (start != SENTINEL_MODULES && !isModuleEnabled(start)) revertWithError("GS105");
         if (pageSize == 0) revertWithError("GS106");
         // Init array with max page size.
         array = new address[](pageSize);
@@ -265,11 +222,7 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
         // Populate return array.
         uint256 moduleCount = 0;
         next = modules[start];
-        while (
-            next != address(0) &&
-            next != SENTINEL_MODULES &&
-            moduleCount < pageSize
-        ) {
+        while (next != address(0) && next != SENTINEL_MODULES && moduleCount < pageSize) {
             array[moduleCount] = next;
             next = modules[next];
             ++moduleCount;
@@ -281,9 +234,7 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
         // If we haven't reached the end inside the loop, we need to set the next pointer to the last element of the modules array
         // because the `next` variable (which is a module by itself) acting as a pointer to the start of the next page is neither
         // included to the current page, nor will it be included in the next one if you pass it as a start.
-        if (next != SENTINEL_MODULES) {
-            next = array[moduleCount - 1];
-        }
+        if (next != SENTINEL_MODULES) next = array[moduleCount - 1];
         // Set the correct size of the returned array.
         /* solhint-disable no-inline-assembly */
         /// @solidity memory-safe-assembly
@@ -314,12 +265,9 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
      * @inheritdoc IModuleManager
      */
     function setModuleGuard(address moduleGuard) external override authorized {
-        if (
-            moduleGuard != address(0) &&
-            !IModuleGuard(moduleGuard).supportsInterface(
-                type(IModuleGuard).interfaceId
-            )
-        ) revertWithError("GS301");
+        if (moduleGuard != address(0) && !IModuleGuard(moduleGuard).supportsInterface(type(IModuleGuard).interfaceId)) {
+            revertWithError("GS301");
+        }
 
         /* solhint-disable no-inline-assembly */
         /// @solidity memory-safe-assembly
@@ -350,10 +298,8 @@ abstract contract ModuleManager is SelfAuthorized, Executor, IModuleManager {
      * @param data Data payload of module transaction.
      * @param operation Operation type of module transaction.
      */
-    function onBeforeExecTransactionFromModule(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Enum.Operation operation
-    ) internal virtual {}
+    function onBeforeExecTransactionFromModule(address to, uint256 value, bytes memory data, Enum.Operation operation)
+        internal
+        virtual
+    {}
 }

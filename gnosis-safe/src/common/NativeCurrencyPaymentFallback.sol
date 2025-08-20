@@ -8,9 +8,7 @@ import {INativeCurrencyPaymentFallback} from "./../interfaces/INativeCurrencyPay
  * @notice A contract that has a fallback to accept native token payments.
  * @author Richard Meissner - @rmeissner
  */
-abstract contract NativeCurrencyPaymentFallback is
-    INativeCurrencyPaymentFallback
-{
+abstract contract NativeCurrencyPaymentFallback is INativeCurrencyPaymentFallback {
     /**
      * @inheritdoc INativeCurrencyPaymentFallback
      */

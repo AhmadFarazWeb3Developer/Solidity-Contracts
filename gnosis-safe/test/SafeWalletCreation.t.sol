@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
-import {UtilsTest} from "./Utils.t.sol";
 import {Safe} from "../src/Safe.sol";
 import {SafeProxy} from "../src/proxies/SafeProxy.sol";
 import {IProxy} from "../src/proxies/SafeProxy.sol";
+import {UtilsTest} from "./Utils.t.sol";
+import {Test, console} from "forge-std/Test.sol";
 
-import {SimpleGuard} from "./guard/SimpleGuard.sol";
 import {Enum} from "../src/libraries/Enum.sol";
+import {SimpleGuard} from "./guard/SimpleGuard.sol";
 
 contract SafeWalletCreationTest is UtilsTest {
     address[] public owners;
@@ -19,10 +19,13 @@ contract SafeWalletCreationTest is UtilsTest {
     function setUp() public override {
         super.setUp();
 
+        //awalys sort
+
         owners = new address[](2);
-        owners[0] = vm.addr(1);
-        owners[1] = vm.addr(2);
-        threshold = 2;
+        owners[0] = vm.addr(2);
+        owners[1] = vm.addr(1);
+
+        owners = sortAddresses(owners);
     }
 
     function getProxySingleton(address proxy) internal view returns (address) {
@@ -92,7 +95,7 @@ contract SafeWalletCreationTest is UtilsTest {
         vm.deal(address(safe), 1 ether);
 
         address recipient = makeAddr("recipient");
-        uint256 sendAmount = 0.1 ether;
+        uint256 sendAmount = 1 ether;
 
         bytes32 txHash = safe.getTransactionHash(
             recipient,
@@ -111,6 +114,10 @@ contract SafeWalletCreationTest is UtilsTest {
 
         uint256 balanceBefore = recipient.balance;
 
+        SimpleGuard guard = new SimpleGuard(); // Optional post and pre check  but required for tight seceurty or large funds withdrawl
+        vm.startPrank(address(safe));
+        safe.setGuard(address(guard));
+
         bool success = safe.execTransaction(
             recipient,
             sendAmount,
@@ -128,7 +135,9 @@ contract SafeWalletCreationTest is UtilsTest {
         assertEq(recipient.balance, balanceBefore + sendAmount);
     }
 
-    function buildSignatures(bytes32 txHash) internal returns (bytes memory) {
+    function buildSignatures(
+        bytes32 txHash
+    ) internal pure returns (bytes memory) {
         bytes memory sigs;
 
         // Owner 1
@@ -140,6 +149,24 @@ contract SafeWalletCreationTest is UtilsTest {
         sigs = abi.encodePacked(sigs, r2, s2, v2);
 
         return sigs;
+    }
+
+    //  sorted address are required for signature decoding
+    function sortAddresses(
+        address[] memory arr
+    ) internal pure returns (address[] memory) {
+        uint256 n = arr.length;
+        for (uint256 i = 0; i < n; i++) {
+            for (uint256 j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    // Swap
+                    address temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+        return arr;
     }
 }
 

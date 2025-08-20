@@ -63,9 +63,7 @@ abstract contract FallbackManager is SelfAuthorized, IFallbackManager {
 
             let handler := sload(FALLBACK_HANDLER_STORAGE_SLOT)
 
-            if iszero(handler) {
-                return(0, 0)
-            }
+            if iszero(handler) { return(0, 0) }
 
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize())
@@ -75,20 +73,10 @@ abstract contract FallbackManager is SelfAuthorized, IFallbackManager {
             mstore(add(ptr, calldatasize()), shl(96, caller()))
 
             // Add 20 bytes for the address that appended to the calldata.
-            let success := call(
-                gas(),
-                handler,
-                0,
-                ptr,
-                add(calldatasize(), 20),
-                0,
-                0
-            )
+            let success := call(gas(), handler, 0, ptr, add(calldatasize(), 20), 0, 0)
 
             returndatacopy(ptr, 0, returndatasize())
-            if iszero(success) {
-                revert(ptr, returndatasize())
-            }
+            if iszero(success) { revert(ptr, returndatasize()) }
             return(ptr, returndatasize())
         }
         /* solhint-enable no-inline-assembly */

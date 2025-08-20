@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import {FallbackManager} from "./base/FallbackManager.sol";
-import {ITransactionGuard, GuardManager} from "./base/GuardManager.sol";
+import {GuardManager, ITransactionGuard} from "./base/GuardManager.sol";
 import {ModuleManager} from "./base/ModuleManager.sol";
 import {OwnerManager} from "./base/OwnerManager.sol";
 import {NativeCurrencyPaymentFallback} from "./common/NativeCurrencyPaymentFallback.sol";
@@ -237,7 +237,7 @@ contract Safe is
             }
             // We transfer the calculated transaction costs to the `tx.origin` to avoid sending it to intermediate contracts that have made calls.
             uint256 payment = 0;
-            if (gasPrice > 0) {
+            if (gasPrice > 0)
                 payment = handlePayment(
                     gasUsed,
                     baseGas,
@@ -245,14 +245,12 @@ contract Safe is
                     gasToken,
                     refundReceiver
                 );
-            }
             if (success) emit ExecutionSuccess(txHash, payment);
             else emit ExecutionFailure(txHash, payment);
         }
         {
-            if (guard != address(0)) {
+            if (guard != address(0))
                 ITransactionGuard(guard).checkAfterExecution(txHash, success);
-            }
         }
     }
 
@@ -335,7 +333,9 @@ contract Safe is
                 dataHash,
                 contractSignature
             ) != EIP1271_MAGIC_VALUE
-        ) revertWithError("GS024");
+        ) {
+            revertWithError("GS024");
+        }
     }
 
     /**
@@ -430,7 +430,9 @@ contract Safe is
                 currentOwner <= lastOwner ||
                 owners[currentOwner] == address(0) ||
                 currentOwner == SENTINEL_OWNERS
-            ) revertWithError("GS026");
+            ) {
+                revertWithError("GS026");
+            }
             lastOwner = currentOwner;
         }
     }

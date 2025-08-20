@@ -68,18 +68,9 @@ contract SafeProxy {
                 return(0x60, 0x20)
             }
             calldatacopy(0, 0, calldatasize())
-            let success := delegatecall(
-                gas(),
-                _singleton,
-                0,
-                calldatasize(),
-                0,
-                0
-            )
+            let success := delegatecall(gas(), _singleton, 0, calldatasize(), 0, 0)
             returndatacopy(0, 0, returndatasize())
-            if iszero(success) {
-                revert(0, returndatasize())
-            }
+            if iszero(success) { revert(0, returndatasize()) }
             return(0, returndatasize())
         }
         /* solhint-enable no-inline-assembly */

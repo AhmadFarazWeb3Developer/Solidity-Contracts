@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.7.0 <0.9.0;
+
 import {SelfAuthorized} from "../common/SelfAuthorized.sol";
 import {IOwnerManager} from "../interfaces/IOwnerManager.sol";
 
@@ -41,10 +42,7 @@ abstract contract OwnerManager is SelfAuthorized, IOwnerManager {
      * @param _owners List of Safe owners.
      * @param _threshold Number of required confirmations for a Safe transaction.
      */
-    function setupOwners(
-        address[] memory _owners,
-        uint256 _threshold
-    ) internal {
+    function setupOwners(address[] memory _owners, uint256 _threshold) internal {
         // Threshold can only be 0 at initialization.
         // Check ensures that the setup function can only be called once.
         if (threshold > 0) revertWithError("GS200");
@@ -58,11 +56,9 @@ abstract contract OwnerManager is SelfAuthorized, IOwnerManager {
         for (uint256 i = 0; i < ownersLength; ++i) {
             // Owner address cannot be null.
             address owner = _owners[i];
-            if (owner == address(0) || owner == SENTINEL_OWNERS)
-                revertWithError("GS203");
+            if (owner == address(0) || owner == SENTINEL_OWNERS) revertWithError("GS203");
             // No duplicate owners allowed.
-            if (owner == currentOwner || owners[owner] != address(0))
-                revertWithError("GS204");
+            if (owner == currentOwner || owners[owner] != address(0)) revertWithError("GS204");
             owners[currentOwner] = owner;
             currentOwner = owner;
         }
@@ -74,13 +70,9 @@ abstract contract OwnerManager is SelfAuthorized, IOwnerManager {
     /**
      * @inheritdoc IOwnerManager
      */
-    function addOwnerWithThreshold(
-        address owner,
-        uint256 _threshold
-    ) public override authorized {
+    function addOwnerWithThreshold(address owner, uint256 _threshold) public override authorized {
         // Owner address cannot be 0 or the sentinel.
-        if (owner == address(0) || owner == SENTINEL_OWNERS)
-            revertWithError("GS203");
+        if (owner == address(0) || owner == SENTINEL_OWNERS) revertWithError("GS203");
         // No duplicate owners allowed.
         if (owners[owner] != address(0)) revertWithError("GS204");
         owners[owner] = owners[SENTINEL_OWNERS];
@@ -94,17 +86,12 @@ abstract contract OwnerManager is SelfAuthorized, IOwnerManager {
     /**
      * @inheritdoc IOwnerManager
      */
-    function removeOwner(
-        address prevOwner,
-        address owner,
-        uint256 _threshold
-    ) public override authorized {
+    function removeOwner(address prevOwner, address owner, uint256 _threshold) public override authorized {
         // Only allow the removal of an owner if the threshold can still be reached.
         // Here we do pre-decrement as it is cheaper and allows us to check if the threshold is still reachable.
         if (--ownerCount < _threshold) revertWithError("GS201");
         // Validate owner address and check that it corresponds to owner index.
-        if (owner == address(0) || owner == SENTINEL_OWNERS)
-            revertWithError("GS203");
+        if (owner == address(0) || owner == SENTINEL_OWNERS) revertWithError("GS203");
         if (owners[prevOwner] != owner) revertWithError("GS205");
         owners[prevOwner] = owners[owner];
         owners[owner] = address(0);
@@ -116,22 +103,15 @@ abstract contract OwnerManager is SelfAuthorized, IOwnerManager {
     /**
      * @inheritdoc IOwnerManager
      */
-    function swapOwner(
-        address prevOwner,
-        address oldOwner,
-        address newOwner
-    ) public override authorized {
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) public override authorized {
         // Owner address cannot be null, the sentinel or the Safe itself.
-        if (
-            newOwner == address(0) ||
-            newOwner == SENTINEL_OWNERS ||
-            newOwner == address(this)
-        ) revertWithError("GS203");
+        if (newOwner == address(0) || newOwner == SENTINEL_OWNERS || newOwner == address(this)) {
+            revertWithError("GS203");
+        }
         // No duplicate owners allowed.
         if (owners[newOwner] != address(0)) revertWithError("GS204");
         // Validate `oldOwner` address and check that it corresponds to owner index.
-        if (oldOwner == address(0) || oldOwner == SENTINEL_OWNERS)
-            revertWithError("GS203");
+        if (oldOwner == address(0) || oldOwner == SENTINEL_OWNERS) revertWithError("GS203");
         if (owners[prevOwner] != oldOwner) revertWithError("GS205");
         owners[newOwner] = owners[oldOwner];
         owners[prevOwner] = newOwner;

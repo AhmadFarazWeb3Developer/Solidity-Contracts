@@ -32,11 +32,7 @@ interface ISafe is
      * @param fallbackHandler The address of the initial fallback handler configured for the Safe.
      */
     event SafeSetup(
-        address indexed initiator,
-        address[] owners,
-        uint256 threshold,
-        address initializer,
-        address fallbackHandler
+        address indexed initiator, address[] owners, uint256 threshold, address initializer, address fallbackHandler
     );
     /**
      * @notice A transaction hash was approved by an owner.
@@ -97,7 +93,8 @@ interface ISafe is
         address payable paymentReceiver
     ) external;
 
-    /** @notice Executes a transaction with `operation` to the `to` address with a native token `value` with a `data` payload.
+    /**
+     * @notice Executes a transaction with `operation` to the `to` address with a native token `value` with a `data` payload.
      *          Pays `gasPrice * gasLimit` in `gasToken` token to the `refundReceiver`.
      * @dev The fees are always transferred, even if the user transaction fails.
      *      This method doesn't perform any sanity check of the transaction, such as:
@@ -139,11 +136,7 @@ interface ISafe is
      * @param signatures Packed signature data that should be verified.
      *                   Can be packed ECDSA signature `r:bytes32 || s:bytes32 || v:uint8`, contract signature (EIP-1271), or approved hash.
      */
-    function checkSignatures(
-        address executor,
-        bytes32 dataHash,
-        bytes memory signatures
-    ) external view;
+    function checkSignatures(address executor, bytes32 dataHash, bytes memory signatures) external view;
 
     /**
      * @notice Checks whether the signature provided is valid for the provided data and hash. Reverts otherwise.
@@ -156,12 +149,9 @@ interface ISafe is
      *                   Can be packed ECDSA signature `r:bytes32 || s:bytes32 || v:uint8`, contract signature (EIP-1271), or approved hash.
      * @param requiredSignatures Amount of required valid signatures.
      */
-    function checkNSignatures(
-        address executor,
-        bytes32 dataHash,
-        bytes memory signatures,
-        uint256 requiredSignatures
-    ) external view;
+    function checkNSignatures(address executor, bytes32 dataHash, bytes memory signatures, uint256 requiredSignatures)
+        external
+        view;
 
     /**
      * @notice Marks hash `hashToApprove` as approved for `msg.sender`.
@@ -223,9 +213,7 @@ interface ISafe is
      * @return An integer denoting whether or not the hash is signed for the Safe.
      *         A non-zero value indicates that the hash is signed.
      */
-    function signedMessages(
-        bytes32 messageHash
-    ) external view returns (uint256);
+    function signedMessages(bytes32 messageHash) external view returns (uint256);
 
     /**
      * @notice Returns a non-zero value if the `messageHash` is approved by the `owner`.
@@ -234,8 +222,5 @@ interface ISafe is
      * @return An integer denoting whether or not the hash is approved by the owner.
      *         A non-zero value indicates that the hash is approved.
      */
-    function approvedHashes(
-        address owner,
-        bytes32 messageHash
-    ) external view returns (uint256);
+    function approvedHashes(address owner, bytes32 messageHash) external view returns (uint256);
 }

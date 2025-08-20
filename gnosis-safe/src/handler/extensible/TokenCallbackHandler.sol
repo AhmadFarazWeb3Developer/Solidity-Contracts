@@ -25,38 +25,39 @@ contract TokenCallbackHandler is
     /**
      * @inheritdoc ERC1155TokenReceiver
      */
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external view override onlyFallback returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata)
+        external
+        view
+        override
+        onlyFallback
+        returns (bytes4)
+    {
         return 0xf23a6e61;
     }
 
     /**
      * @inheritdoc ERC1155TokenReceiver
      */
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external view override onlyFallback returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        view
+        override
+        onlyFallback
+        returns (bytes4)
+    {
         return 0xbc197c81;
     }
 
     /**
      * @inheritdoc ERC721TokenReceiver
      */
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external view override onlyFallback returns (bytes4) {
+    function onERC721Received(address, address, uint256, bytes calldata)
+        external
+        view
+        override
+        onlyFallback
+        returns (bytes4)
+    {
         return 0x150b7a02;
     }
 
@@ -67,26 +68,19 @@ contract TokenCallbackHandler is
      *      the address, the keccak256 hash of ERC777TokensSender (0x29ddb589b1fb5fc7cf394961c1adf5f8c6454761adf795e67fe149f658abe895) as the
      *      interface hash, and the address of the contract implementing the ERC777TokensSender as the implementer."
      */
-    function tokensReceived(
-        address,
-        address,
-        address,
-        uint256,
-        bytes calldata,
-        bytes calldata
-    ) external pure override {
+    function tokensReceived(address, address, address, uint256, bytes calldata, bytes calldata)
+        external
+        pure
+        override
+    {
         // We implement this for completeness, doesn't really have any value
     }
 
     /**
      * @inheritdoc IERC165
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) external view virtual override returns (bool) {
-        return
-            interfaceId == type(ERC1155TokenReceiver).interfaceId ||
-            interfaceId == type(ERC721TokenReceiver).interfaceId ||
-            interfaceId == type(IERC165).interfaceId;
+    function supportsInterface(bytes4 interfaceId) external view virtual override returns (bool) {
+        return interfaceId == type(ERC1155TokenReceiver).interfaceId
+            || interfaceId == type(ERC721TokenReceiver).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 }

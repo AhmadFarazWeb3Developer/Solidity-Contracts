@@ -49,11 +49,7 @@ interface IOwnerManager {
      * @param owner Owner address to be removed.
      * @param _threshold New threshold.
      */
-    function removeOwner(
-        address prevOwner,
-        address owner,
-        uint256 _threshold
-    ) external;
+    function removeOwner(address prevOwner, address owner, uint256 _threshold) external;
 
     /**
      * @notice Replaces the owner `oldOwner` in the Safe with `newOwner`.
@@ -71,11 +67,7 @@ interface IOwnerManager {
      * @param oldOwner Owner address to be replaced.
      * @param newOwner New owner address.
      */
-    function swapOwner(
-        address prevOwner,
-        address oldOwner,
-        address newOwner
-    ) external;
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
 
     /**
      * @notice Changes the threshold of the Safe to `_threshold`.

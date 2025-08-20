@@ -27,8 +27,5 @@ abstract contract ISignatureValidator is ISignatureValidatorConstants {
      * @return The `EIP1271_MAGIC_VALUE` if the signature is valid.
      *         Reverting or returning any other value indicates an invalid signature.
      */
-    function isValidSignature(
-        bytes32 _hash,
-        bytes memory _signature
-    ) external view virtual returns (bytes4);
+    function isValidSignature(bytes32 _hash, bytes memory _signature) external view virtual returns (bytes4);
 }

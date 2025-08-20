@@ -2,10 +2,13 @@
 pragma solidity ^0.8.13;
 
 import {ITransactionGuard} from "../../src/base/GuardManager.sol";
-import {Enum} from "../../src/libraries/Enum.sol";
+
 import {IERC165} from "../../src/interfaces/IERC165.sol";
+import {Enum} from "../../src/libraries/Enum.sol";
 
 contract SimpleGuard is ITransactionGuard {
+    event ExecutionSuccess(bytes32 hash);
+
     function checkTransaction(
         address to,
         uint256 value,
@@ -19,12 +22,16 @@ contract SimpleGuard is ITransactionGuard {
         bytes memory signatures,
         address msgSender
     ) external override {
-        // Add your guard logic here
-        // For testing, you can just allow everything
+        if (value > 1 ether) {
+            revert("No more then 1 ether");
+        }
     }
 
     function checkAfterExecution(bytes32 hash, bool success) external override {
-        // Post-execution checks
+        if (!success) revert("Success Failed");
+        else {
+            emit ExecutionSuccess(hash);
+        }
     }
 
     function supportsInterface(

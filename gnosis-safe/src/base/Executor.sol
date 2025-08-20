@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.7.0 <0.9.0;
+
 import {Enum} from "../libraries/Enum.sol";
 
 /**
@@ -19,40 +20,22 @@ abstract contract Executor {
      * @param operation Operation type (0 for `CALL`, 1 for `DELEGATECALL`).
      * @return success boolean flag indicating if the call succeeded.
      */
-    function execute(
-        address to,
-        uint256 value,
-        bytes memory data,
-        Enum.Operation operation,
-        uint256 txGas
-    ) internal returns (bool success) {
+    function execute(address to, uint256 value, bytes memory data, Enum.Operation operation, uint256 txGas)
+        internal
+        returns (bool success)
+    {
         if (operation == Enum.Operation.DelegateCall) {
             /* solhint-disable no-inline-assembly */
             /// @solidity memory-safe-assembly
             assembly {
-                success := delegatecall(
-                    txGas,
-                    to,
-                    add(data, 0x20),
-                    mload(data),
-                    0,
-                    0
-                )
+                success := delegatecall(txGas, to, add(data, 0x20), mload(data), 0, 0)
             }
             /* solhint-enable no-inline-assembly */
         } else {
             /* solhint-disable no-inline-assembly */
             /// @solidity memory-safe-assembly
             assembly {
-                success := call(
-                    txGas,
-                    to,
-                    value,
-                    add(data, 0x20),
-                    mload(data),
-                    0,
-                    0
-                )
+                success := call(txGas, to, value, add(data, 0x20), mload(data), 0, 0)
             }
             /* solhint-enable no-inline-assembly */
         }

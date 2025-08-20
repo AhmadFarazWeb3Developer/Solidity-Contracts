@@ -12,10 +12,7 @@ interface IStorageAccessible {
      * @param length The number of words (32 bytes) of data to read.
      * @return The bytes that were read.
      */
-    function getStorageAt(
-        uint256 offset,
-        uint256 length
-    ) external view returns (bytes memory);
+    function getStorageAt(uint256 offset, uint256 length) external view returns (bytes memory);
 
     /**
      * @notice Performs a `DELEGATECALL` to a `targetContract` in the context of self.
@@ -26,8 +23,5 @@ interface IStorageAccessible {
      * @param targetContract Address of the contract containing the code to execute.
      * @param calldataPayload Calldata that should be sent to the target contract (encoded method name and arguments).
      */
-    function simulateAndRevert(
-        address targetContract,
-        bytes memory calldataPayload
-    ) external;
+    function simulateAndRevert(address targetContract, bytes memory calldataPayload) external;
 }

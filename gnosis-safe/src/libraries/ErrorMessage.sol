@@ -22,10 +22,7 @@ abstract contract ErrorMessage {
         /// @solidity memory-safe-assembly
         assembly {
             let ptr := mload(0x40)
-            mstore(
-                ptr,
-                0x08c379a000000000000000000000000000000000000000000000000000000000
-            ) // Selector for method "Error(string)".
+            mstore(ptr, 0x08c379a000000000000000000000000000000000000000000000000000000000) // Selector for method "Error(string)".
             mstore(add(ptr, 0x04), 0x20) // String offset.
             mstore(add(ptr, 0x24), 0x05) // Revert reason length (5 bytes for bytes5).
             mstore(add(ptr, 0x44), error) // Revert reason.
