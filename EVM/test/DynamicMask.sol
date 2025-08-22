@@ -12,6 +12,14 @@ contract BuildDynamicMaskTest is UtilsTest {
     function test_normalMask() public view {
         dynamicMask.normalMask();
     }
+    function test_YulStr() public view {
+        dynamicMask.YulStr();
+    }
+
+    function test_YulA() public view {
+        //   assertEq(dynamicMask.Yul("A"), keccak256(abi.encodePacked("A")));
+        // 0x03783fac2efed8fbc9ad443e592ee30e61d65f471140c10ca155e937b435b760
+    }
 }
 
 /*

@@ -2,15 +2,17 @@
 pragma solidity ^0.8.25;
 
 contract BuildDynamicMask {
+    uint128 public A = 1000;
+    uint104 public B = 24;
+    uint16 public C = 9;
+    uint8 public D = 3;
+
+    string public str = "Yul";
+
     function normalMask()
         public
         pure
-        returns (
-            bytes32 shifted,
-            bytes32 mask1,
-            bytes32 mask2,
-            bytes32 mask3,
-        )
+        returns (bytes32 shifted, bytes32 mask1, bytes32 mask2, bytes32 mask3)
     {
         assembly {
             shifted := shl(16, 1) // shift 1 to left with 16 bits
@@ -42,4 +44,57 @@ contract BuildDynamicMask {
             //    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000 -> not(p) flips bits
         }
     }
+
+    function YulStr() public view returns (bytes32 slot, bytes32 content) {
+        assembly {
+            slot := str.slot
+            content := sload(str.slot) // 0x59756c0000000000000000000000000000000000000000000000000000000006
+        }
+    }
+
+    function dynamicMaskForUint(
+        string memory _symbol,
+        uint256 _value
+    ) external {
+        uint128 A_value;
+        uint104 B_value;
+        uint16 C_value;
+        uint8 D_value;
+
+        if (bytes(_symbol).length > 1 || bytes(_symbol).length == 0) {
+            revert("Ony single character is allowed");
+        } else {
+            if (
+                keccak256(abi.encodePacked(_symbol)) ==
+                keccak256(abi.encodePacked("A"))
+            ) {
+                A_value = uint128(_value);
+            } else if (
+                keccak256(abi.encodePacked(_symbol)) ==
+                keccak256(abi.encodePacked("B"))
+            ) {
+                B_value = uint104(_value);
+            } else if (
+                keccak256(abi.encodePacked(_symbol)) ==
+                keccak256(abi.encodePacked("C"))
+            ) {
+                C_value = uint16(_value);
+            } else if (
+                keccak256(abi.encodePacked(_symbol)) ==
+                keccak256(abi.encodePacked("D"))
+            ) {
+                D_value = uint8(_value);
+            } else {
+                revert("Did'nt match");
+            }
+
+            assembly {
+
+            }
+        }
+    }
+
+    // function Yul(string memory symbol) public pure returns (bytes32) {
+    //     return keccak256(abi.encodePacked(symbol));
+    // }
 }

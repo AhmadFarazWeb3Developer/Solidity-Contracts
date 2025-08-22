@@ -9,6 +9,7 @@ import {BitsShifting} from "../src/BitsShifting.sol";
 import {BitsMasking} from "../src/BitsMasking.sol";
 
 import {BuildDynamicMask} from "../src/DynamicMask.sol";
+import {Strings} from "../src/Strings.sol";
 
 abstract contract UtilsTest is Test {
     StorageVariables storageVars;
@@ -18,6 +19,8 @@ abstract contract UtilsTest is Test {
     BitsShifting bitsShifting;
     BitsMasking bitsMasking;
     BuildDynamicMask dynamicMask;
+
+    Strings strings;
 
     function setUp() public virtual {
         storageVars = new StorageVariables();
@@ -29,5 +32,7 @@ abstract contract UtilsTest is Test {
         bitsMasking = new BitsMasking();
 
         dynamicMask = new BuildDynamicMask();
+
+        strings = new Strings();
     }
 }
