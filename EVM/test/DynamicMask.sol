@@ -4,24 +4,13 @@ pragma solidity ^0.8.20;
 import {Test} from "forge-std/Test.sol";
 import {UtilsTest} from "./Utils.t.sol";
 
-contract BitsMaskingTest is UtilsTest {
+contract BuildDynamicMaskTest is UtilsTest {
     function setUp() public override {
         super.setUp();
     }
 
-    function test_SlotData() public view {
-        bitsMasking.SlotData();
-    }
-
-    function test_getOffSet() public view {
-        bitsMasking.getOffSet();
-    }
-    function test_Mask() public view {
-        bitsMasking.Mask();
-    }
-
-    function test_writeE() public {
-        bitsMasking.writeE(10);
+    function test_normalMask() public view {
+        dynamicMask.normalMask();
     }
 }
 
