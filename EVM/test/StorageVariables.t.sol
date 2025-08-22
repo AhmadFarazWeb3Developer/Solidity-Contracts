@@ -10,4 +10,7 @@ contract StorageVariablesTest is UtilsTest {
     }
 
     function test_Slots() public {}
+    function test_WriteToStorage() public {
+        storageVars.writeToStorageSlots(1, 2523);
+    }
 }

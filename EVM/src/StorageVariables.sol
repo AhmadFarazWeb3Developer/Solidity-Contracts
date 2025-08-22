@@ -49,4 +49,41 @@ contract StorageVariables {
         console.log(e_slot);
         console.log(f_slot);
     }
+
+    function writeToStorageSlots(uint256 _slotNumber, uint256 _value) public {
+        // orignal decimal values
+        uint256 d_slotOldValue;
+        uint256 d_slotNewValue;
+
+        // bytes formate
+
+        bytes32 b_slotOldValue;
+        bytes32 b_slotNewValue;
+
+        assembly {
+            // old slots
+            d_slotOldValue := sload(_slotNumber)
+            b_slotOldValue := sload(_slotNumber)
+
+            sstore(_slotNumber, _value)
+            // new slots
+            d_slotNewValue := sload(_slotNumber)
+            b_slotNewValue := sload(_slotNumber)
+        }
+
+        // old values
+        console.log(d_slotOldValue);
+        console.logBytes32(b_slotOldValue);
+        // new values
+        console.log(d_slotNewValue);
+        console.logBytes32(b_slotNewValue);
+    }
 }
+
+// how to read a slot specific index ?
+// Memory opcodes :  mstore, mload,
+// Storage opcodes :  sstore, sload,
+// caller(), callvalue(), calldataload(p), calldatasize(), calldatacopy(t,f,s)
+
+
+// Bit Masking : shr, shl, and
