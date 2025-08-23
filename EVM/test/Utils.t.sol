@@ -10,6 +10,7 @@ import {BitsMasking} from "../src/BitsMasking.sol";
 
 import {BuildDynamicMask} from "../src/DynamicMask.sol";
 import {Strings} from "../src/Strings.sol";
+import {DotEncode} from "../src/ABI_Encoding/DotEncode.sol";
 
 abstract contract UtilsTest is Test {
     StorageVariables storageVars;
@@ -21,6 +22,8 @@ abstract contract UtilsTest is Test {
     BuildDynamicMask dynamicMask;
 
     Strings strings;
+
+    DotEncode dotEncode;
 
     function setUp() public virtual {
         storageVars = new StorageVariables();
@@ -34,5 +37,7 @@ abstract contract UtilsTest is Test {
         dynamicMask = new BuildDynamicMask();
 
         strings = new Strings();
+
+        dotEncode = new DotEncode();
     }
 }
