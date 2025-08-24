@@ -3,6 +3,8 @@ pragma solidity ^0.8.25;
 import {Test, console, console2} from "forge-std/Test.sol";
 import {UtilsTest} from "./Utils.t.sol";
 
+import "../src/ABI_Encoding/DotEncode.sol";
+
 contract DotEncodeTest is UtilsTest {
     function setUp() public override {
         super.setUp();
@@ -163,7 +165,7 @@ contract DotEncodeTest is UtilsTest {
     }
 
     function test_StructEncode() public view {
-        dotEncode.StructEncode();
+        bytes memory hashedData = dotEncode.StructEncode();
 
         /*
         struct myStruct {
@@ -198,6 +200,13 @@ contract DotEncodeTest is UtilsTest {
         if the types if dyamic or refrecen type it hold the pointer to it
 
          */
+        DotEncode.myStruct memory myStruct = abi.decode(
+            hashedData,
+            (DotEncode.myStruct)
+        );
+
+        console.log(myStruct.id); // 1122
+        console.log(myStruct.data); // Hello Yul!"
     }
 }
 
