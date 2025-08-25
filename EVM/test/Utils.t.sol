@@ -11,6 +11,8 @@ import {BitsMasking} from "../src/BitsMasking.sol";
 import {BuildDynamicMask} from "../src/DynamicMask.sol";
 import {Strings} from "../src/Strings.sol";
 import {DotEncode} from "../src/ABI_Encoding/DotEncode.sol";
+import {DotEncodePacked} from "../src/ABI_Encoding/DotEncodePacked.sol";
+import {DotEncodeWithSignature} from "../src/ABI_Encoding/DotEncodeWithSignature.sol";
 
 abstract contract UtilsTest is Test {
     StorageVariables storageVars;
@@ -24,6 +26,9 @@ abstract contract UtilsTest is Test {
     Strings strings;
 
     DotEncode dotEncode;
+    DotEncodePacked dotEncodePacked;
+
+    DotEncodeWithSignature dotEncodeWithSignature;
 
     function setUp() public virtual {
         storageVars = new StorageVariables();
@@ -39,5 +44,8 @@ abstract contract UtilsTest is Test {
         strings = new Strings();
 
         dotEncode = new DotEncode();
+        dotEncodePacked = new DotEncodePacked();
+
+        dotEncodeWithSignature = new DotEncodeWithSignature();
     }
 }
