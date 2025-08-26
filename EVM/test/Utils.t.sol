@@ -14,6 +14,8 @@ import {DotEncode} from "../src/ABI_Encoding/DotEncode.sol";
 import {DotEncodePacked} from "../src/ABI_Encoding/DotEncodePacked.sol";
 import {DotEncodeWithSignature} from "../src/ABI_Encoding/DotEncodeWithSignature.sol";
 
+import {CallData} from "../src/CallData.sol";
+
 abstract contract UtilsTest is Test {
     StorageVariables storageVars;
     ConstantIsNotOnStorage constantVar;
@@ -29,6 +31,8 @@ abstract contract UtilsTest is Test {
     DotEncodePacked dotEncodePacked;
 
     DotEncodeWithSignature dotEncodeWithSignature;
+
+    CallData callData;
 
     function setUp() public virtual {
         storageVars = new StorageVariables();
@@ -47,5 +51,7 @@ abstract contract UtilsTest is Test {
         dotEncodePacked = new DotEncodePacked();
 
         dotEncodeWithSignature = new DotEncodeWithSignature();
+
+        callData = new CallData();
     }
 }

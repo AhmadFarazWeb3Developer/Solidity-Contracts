@@ -29,4 +29,15 @@ contract DotEncodeWithSignature {
     - Used by external/public functions to access their inputs.
     - If you need to change the arguments, copy them into "memory".
 */
+
+    function execute(address target, bytes calldata actionData) public pure {
+        /* 
+        0x00..0x03 : execute.selector
+        0x04..0x23 : target (0x2d1d989a...)
+        0x24..0x43 : pointer to actionData (e.g. 0x40)
+        0x40..0x5f : length of actionData (0x60)
+        0x60..0x9f : 0x844b4cf9...dd9b878e...
+        0xa0..0xdf : 0x2d1d989a...    
+      */
+    }
 }
