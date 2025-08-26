@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+/* Arguments supplied by the callers to function parameter are always stored in a calldata location.
+
+@> Calldata: This is where all the incoming function execution data, including function arguments,  
+is stored. This is a non-modifiable memory.
+
+The first 4 bytes of calldata determin which function is being called, also refered as function identifier
+*/
+
 contract CallData {
     // A function that takes an immutable array as calldata
     function processArray(
