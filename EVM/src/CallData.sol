@@ -36,7 +36,7 @@ contract CallData {
         uint256[] calldata inputArray
     ) external pure returns (uint256[] memory) {
         // Attempting to modify a calldata parameter - This will cause a compilation error
-        inputArray[0] = 42; //  Error: calldata is immutable and cannot be modified
+        //inputArray[0] = 42; //  Error: calldata is immutable and cannot be modified
 
         // To fix this, the developer would need to copy the calldata into memory
         return inputArray;

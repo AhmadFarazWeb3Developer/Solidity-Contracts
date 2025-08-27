@@ -30,6 +30,11 @@ contract DotEncodeWithSignature {
     - If you need to change the arguments, copy them into "memory".
 */
 
+    function EncodeDynamicSignature(
+        address _address,
+        bytes calldata _data
+    ) public pure returns (bytes memory) {}
+
     function execute(address target, bytes calldata actionData) public pure {
         /* 
         0x00..0x03 : execute.selector
