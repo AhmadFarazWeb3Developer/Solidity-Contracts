@@ -7,3 +7,6 @@
 [submodule "gnosis-safe/lib/forge-std"]
 	path = gnosis-safe/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "EVM/lib/openzeppelin-contracts"]
+	path = EVM/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
