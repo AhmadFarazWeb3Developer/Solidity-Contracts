@@ -17,6 +17,9 @@ import {DotEncodeWithSelector} from "../src/ABI_Encoding/DotEncodeWithSelector.s
 
 import {CallData} from "../src/CallData.sol";
 
+import {Caller} from "../src/Call.sol";
+import {Receiver} from "../src/Call.sol";
+
 abstract contract UtilsTest is Test {
     StorageVariables storageVars;
     ConstantIsNotOnStorage constantVar;
@@ -34,6 +37,9 @@ abstract contract UtilsTest is Test {
     DotEncodeWithSignature dotEncodeWithSignature;
     DotEncodeWithSelector dotEncodeWithSelector;
     CallData callData;
+
+    Caller caller;
+    Receiver receiver;
 
     function setUp() public virtual {
         storageVars = new StorageVariables();
@@ -54,5 +60,8 @@ abstract contract UtilsTest is Test {
         dotEncodeWithSignature = new DotEncodeWithSignature();
         dotEncodeWithSelector = new DotEncodeWithSelector();
         callData = new CallData();
+
+        receiver = new Receiver();
+        caller = new Caller();
     }
 }
