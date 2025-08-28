@@ -7,8 +7,12 @@ pragma solidity ^0.8.25;
 The function signature is the combination of the function name and its argument types without spaces.
 
 If we were to make a low level call to another smart contract with a public function foo(uint256 x) (passing x = 5 as the argument), we would do the following:
-otherContractAddr.call(abi.encodeWithSignature("foo(uint256)", (5)); */
-//
+otherContractAddr.call(abi.encodeWithSignature("foo(uint256)", (5)); 
+
+
+abi.encodeWithSignature is slightly more gas-expensive because it needs to hash the signature string
+*/
+
 contract DotEncodeWithSignature {
     function EnodeSignature() external pure returns (bytes memory) {
         return abi.encodeWithSignature("foo(uint256)", 5);

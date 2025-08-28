@@ -13,6 +13,7 @@ import {Strings} from "../src/Strings.sol";
 import {DotEncode} from "../src/ABI_Encoding/DotEncode.sol";
 import {DotEncodePacked} from "../src/ABI_Encoding/DotEncodePacked.sol";
 import {DotEncodeWithSignature} from "../src/ABI_Encoding/DotEncodeWithSignature.sol";
+import {DotEncodeWithSelector} from "../src/ABI_Encoding/DotEncodeWithSelector.sol";
 
 import {CallData} from "../src/CallData.sol";
 
@@ -31,7 +32,7 @@ abstract contract UtilsTest is Test {
     DotEncodePacked dotEncodePacked;
 
     DotEncodeWithSignature dotEncodeWithSignature;
-
+    DotEncodeWithSelector dotEncodeWithSelector;
     CallData callData;
 
     function setUp() public virtual {
@@ -51,7 +52,7 @@ abstract contract UtilsTest is Test {
         dotEncodePacked = new DotEncodePacked();
 
         dotEncodeWithSignature = new DotEncodeWithSignature();
-
+        dotEncodeWithSelector = new DotEncodeWithSelector();
         callData = new CallData();
     }
 }

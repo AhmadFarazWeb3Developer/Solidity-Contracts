@@ -16,7 +16,7 @@ contract DotEncodeWithSignatureTest is UtilsTest {
         dotEncodeWithSignature.EnodeSignature(); // 0x2fbebd380000000000000000000000000000000000000000000000000000000000000005
     }
 
-    function test_execute() public {
+    function test_execute() public view {
         bytes memory actionData = abi.encodeWithSignature(
             "foo(address,address)",
             dummyAddress,
