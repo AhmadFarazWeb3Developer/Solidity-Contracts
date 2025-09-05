@@ -11,7 +11,7 @@ contract Game is ERC1155 {
     uint256 public constant SHIELD = 4;
 
     constructor() ERC1155("https://game.example/api/item/{id}.json") {
-        _mint(msg.sender, GOLD, 10 ** 18, ""); // NFT
+        _mint(msg.sender, GOLD, 10 ** 18, ""); // FT
         _mint(msg.sender, SILVER, 10 ** 27, ""); // FT
         _mint(msg.sender, THORS_HAMMER, 1, ""); // NFT
         _mint(msg.sender, SWORD, 10 ** 9, ""); // FT
